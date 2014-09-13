@@ -29,16 +29,17 @@ def genNav():
     navTr += tmptd
     del tmplink
     del tmptd
+    colspan = len(navList)
     TEMPLATE_NAVIGATION = """\
-    <table border=1 cellspacing=0>
+    <table border=1 cellpadding=5>
       <tr>
-        <td colspan=6>TODO: assign correct link targets</td>
+        <td colspan=%s>TODO: assign correct link targets</td>
       <tr>
         %s
       </tr>
     </table>
     """
-  navTable = TEMPLATE_NAVIGATION % navTr
+  navTable = TEMPLATE_NAVIGATION % (colspan,navTr)
   return navTable
 #</genNav>
 
