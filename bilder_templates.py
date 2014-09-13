@@ -1,0 +1,42 @@
+
+def get_page_template_create_stream():
+  # TODO: automate div generation, i.e. <div %s><label>%s</label> and name=%s
+  # TODO: move labels beneath boxes
+  # http://www.w3schools.com/css/css_border.asp
+  # READ: http://www.w3schools.com/css/css_boxmodel.asp
+  PAGE_TEMPLATE_CREATE_STREAM = """\
+      <style>
+        div.outline {border-style:solid;border-width:1px;padding:0.5em 0 0.5em 0.5em;background-color:#b0c4de;}
+      </style>
+      <form action="/sign?%s" method="post">
+        <div class="outline">
+          <label for="textarea">Name Your Stream:</label><br/>
+          <textarea name="stream_name" rows="2" cols="60"></textarea></div>
+        <div class="outline">
+          <label for="textarea">Emails:</label><br/>
+          <textarea name="add_subscribers" rows="2" cols="60"></textarea></div>
+        <div class="outline">
+          <label for="textarea">add subscribers</label><br/>
+          <textarea name="invite_message" rows="2" cols="60"></textarea>
+        </div>
+        <div class="outline">
+          <label for="textarea">Tag Your Stream</label><br/>
+          <textarea name="stream_tags" rows="2" cols="60"></textarea>
+        </div>
+        <div class="outline">
+          <label for="textarea">URL to Cover Image<br/>(optional)</label><br/>
+          <textarea name="stream_cover_url" rows="2" cols="60"></textarea>
+        </div>
+        <div><input type="submit" value="Create Stream"></div>
+      </form>
+      <hr>
+      <p>Select different Stream/Guestbook:</p>
+      <form>Guestbook name:
+        <input value="%s" name="guestbook_name">
+        <input type="submit" value="switch">
+      </form>
+      <a href="%s">%s</a>
+    </body>
+  </html>
+  """
+  return PAGE_TEMPLATE_CREATE_STREAM
