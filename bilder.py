@@ -92,8 +92,17 @@ class Guestbook(webapp2.RequestHandler):
 
         query_params = {'guestbook_name': guestbook_name}
         self.redirect('/?' + urllib.urlencode(query_params))
+# inspiration: http://stackoverflow.com/a/12664865
+# doc: https://developers.google.com/appengine/docs/python/tools/webapp/responseclass#Response_out
+# The contents of this object are sent as the body of the response when the request handler method returns.
+class JsonTest(webapp2.RequestHandler):
+  def post(self):
+    self.response.out.write('{"success": "some var", "payload": "some var"}')
+  #TODO: adding 'return' breaks the page. This may be due to 'self.response.out.write'
+  #return
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/sign', Guestbook),
+    ('/jsonreturntest',JsonTest),
 ], debug=True)
