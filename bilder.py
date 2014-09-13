@@ -146,6 +146,11 @@ class Manage(webapp2.RequestHandler):
         author = 'Anonymous'
       greetingDict['author'] = author
       greetingDict['content'] = cgi.escape(greeting.content)
+      #TODO: remove HACK, implement nicely
+      contentHref = '<a href=/viewsinglestream?streamid=%s>%s</a>' % \
+          (urllib.quote_plus(greetingDict['content']) , greetingDict['content'])
+      greetingDict['content'] = contentHref
+      #</HACK>
       greetingDict['date'] = str(greeting.date)
       greetingDict['img_amount'] = str(greeting.img_amount)
       greetingDict['views'] = str(greeting.views)
@@ -198,7 +203,7 @@ class Manage(webapp2.RequestHandler):
 
     ## generate form for delete/unsub stream
     # define table layout: 
-    gen_html_form = lambda action,method,submit_value,contents: '<form action=%s" method="post">\n  %s\n<input type="submit" value="%s">\n</form>' % (action, contents,submit_value)
+    gen_html_form = lambda action,method,submit_value,contents: '<form action="%s" method="post">\n  %s\n<input type="submit" value="%s">\n</form>' % (action, contents,submit_value)
 
     # form: own streams
     #TODO: make a fancy button with the (X) on it
@@ -210,8 +215,7 @@ class Manage(webapp2.RequestHandler):
     contentList = []
     #TODO: add form to table to delete selected streams - just have a checkbox with the stream id
     # https://apt.mybalsamiq.com/mockups/1083489.png?key=c6286db5bf27f95012252833d5214a336f17922c
-    response = '<html><body>'
-    response += TEMPLATE_NAVIGATION
+    response = TEMPLATE_NAVIGATION
     #response += greetTable
     contentList.append('<h3>Streams I Own</h3>')
     contentList.append(form_streams_own)
@@ -222,6 +226,7 @@ class Manage(webapp2.RequestHandler):
     #response += bilder_templates.get_html_template_table()
     # wrap in grey div
     response = bilder_templates.generateContainerDiv('<h1>Handler: Manage</h1>' + response,'#C0C0C0')
+    response = '<html>\n  <body>\n' + response + '\n  </body>\n</html>'
     self.response.write(response)
     #self.response.write('{"stream1": "name1", "payload": "some var"}')
 #</class Manage>
