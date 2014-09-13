@@ -95,6 +95,8 @@ class Guestbook(webapp2.RequestHandler):
 # inspiration: http://stackoverflow.com/a/12664865
 # doc: https://developers.google.com/appengine/docs/python/tools/webapp/responseclass#Response_out
 # The contents of this object are sent as the body of the response when the request handler method returns.
+#   http://stackoverflow.com/a/10871211
+#   self.response.write and self.response.out.write are same thing
 class JsonTest(webapp2.RequestHandler):
   def post(self):
     self.response.out.write('{"success": "some var", "payload": "some var"}')
