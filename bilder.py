@@ -57,12 +57,15 @@ def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
     """Constructs a Datastore key for a Guestbook entity with guestbook_name."""
     return ndb.Key('Guestbook', guestbook_name)
 
+# doc on internal properties: https://developers.google.com/appengine/docs/python/ndb/properties
 class Greeting(ndb.Model):
     #TODO: implement all the internal methods
     """Models an individual Guestbook entry."""
     author = ndb.UserProperty()
-    content = ndb.StringProperty(indexed=False)
+    content = ndb.StringProperty() # TODO: convert to 'streamid'
     date = ndb.DateTimeProperty(auto_now_add=True)
+
+    imgurls = ndb.StringProperty(indexed=False, repeated=True)
 
     #TODO: implement these mocks
     img_amount = 9
@@ -256,6 +259,76 @@ class ViewSingleStream(webapp2.RequestHandler):
 #</class ViewSingleStream>
 ###############################################################################
 
+###############################################################################
+#< class ImgUpload>
+#TODO: for now, just store strings; do photos later
+#TODO: see https://developers.google.com/appengine/docs/python/tools/webapp/blobstorehandlers
+# class PhotoUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
+class ImgUpload(webapp2.RequestHandler):
+  def post(self):
+    response = ''
+
+    # look up stream
+    stream_name = self.request.get('streamid')
+    
+    #< read in options>
+    #TODO: get dict directly from self.request.get
+    paramDict = {}
+    for param in ['streamid', 'file_name', 'file_comments']:
+      paramDict[param] = self.request.get(param, 'unspecified')
+      response += param + ': ' + paramDict[param] + '<br/>'
+    #</read in options>
+
+    # have to retrieve stream from DB
+    # stream = get the thingy
+    #TODO: what about the ancestor query? it did not work with that.
+    #TODO: what about spaces? will stored streamid have spaces or no?
+    #TODO: do I need to loop through the query? How do I know if I got the object I want?
+    #NOTE: the printout of a few DB objects:
+    # streams_query:
+    # Query(kind='Greeting', filters=FilterNode('content', '=', 'indexedibix'))
+    # streams: 
+    # v this is an array with only one element: [Greeting( <etc> )]
+    # [Greeting(key=Key('Guestbook', 'default_guestbook', 'Greeting', 6333186975989760), author=None, content=u'indexedibix', date=datetime.datetime(2014, 9, 14, 9, 24, 32, 37000), streamid=None)]
+    # streamInstance: # note the various 'imgurls'
+    # Greeting(key=Key('Guestbook', 'default_guestbook', 'Greeting', 6333186975989760), author=None, content=u'indexedibix', date=datetime.datetime(2014, 9, 14, 9, 24, 32, 37000), imgurls=[u'File Name', u'File Name', u'File Name', u'File Name', u'File Name', u'indexedibix'], streamid=None)
+    # 
+    streams_query = Greeting.query( Greeting.content == paramDict['streamid'])
+    response += 'streams_query:<br/>'+ repr(streams_query)
+    response +=  '<br/>'
+    streams = streams_query.fetch()
+    response += 'streams: <br/>' + repr(streams)
+    response +=  '<br/>'
+
+    #TODO: iterate later...
+    for streamInstance in streams:
+      response += 'streamInstance:<br/>' + repr(streamInstance)
+      response +=  '<br/>'
+      # image should be first, also better to overwrite existing list than manipulate (see doc for 'class Greeting'
+      # "prepend" current image
+      imgList = [paramDict['file_name']]
+
+      #TODO:
+      # append the current list if available
+      if streamInstance.imgurls :
+        imgList.extend(streamInstance.imgurls)
+      # write new list to object
+      streamInstance.imgurls = imgList
+      # re-store object
+      streamInstance.put()
+
+    # create response:
+    response = bilder_templates.generateContainerDivBlue(response)
+    response = bilder_templates.generateContainerDiv('<h1>Handler: ViewSingleStream</h1>' + response,'#C0C0C0')
+    #stream_query = Greeting.query
+    #DEBUG: self.response.write(response)
+#TODO: redirect back
+    query_params = urllib.urlencode({'streamid': stream_name})
+    action = '/viewsinglestream?' + query_params 
+    self.redirect(action)
+#< class ImgUpload>
+###############################################################################
+
 #NOTE: 
 # Does not output to screen
 # Guestbook is user
@@ -296,6 +369,7 @@ application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/manage', Manage),
     ('/viewsinglestream', ViewSingleStream),
+    ('/img_upload', ImgUpload),
     ('/sign', Guestbook),
     ('/jsonreturntest',JsonTest),
 ], debug=True)
