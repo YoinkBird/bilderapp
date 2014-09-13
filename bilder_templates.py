@@ -1,4 +1,38 @@
 
+#< def generateContainerDiv>
+def generateContainerDiv(containerTitle,bgcolor):
+  handlerContainer = '<div style="border-style:solid;border-width:1px;padding:0.5em 0 0.5em 0.5em;background-color:%s;">%s</div>' % (bgcolor, containerTitle )
+  return handlerContainer
+#</def generateContainerDiv>
+
+#< generateTableRow>
+def generateTableRow(list):
+  tableRow = ''
+  for td in list:
+    #tmplink = '<a href=%s>%s</a>' % (navDict[param], param)
+    tmptd   = '<td>%s</td>' % td
+    tableRow += tmptd
+    #del tmplink
+    del tmptd
+  tableRow = '<tr>\n  %s\n</tr>' % tableRow
+  return tableRow
+#</generateTableRow>
+#< get_html_template_table>
+def get_html_template_table(tableRows):
+  template = """\
+    <table border=1 cellspacing=0>
+        %s
+    </table>
+    </body>
+  </html>
+      """
+#  headerOwn = generateTableRow(['Name','Last New Picture','Number of Pictures','Delete'])
+#  headerSub = generateTableRow(['Name','Last New Picture','Number of Pictures','Views','Unsubscribe'])
+  # return both rows in the table
+#  return template % (headerOwn + '\n' + headerSub)
+  return template % tableRows
+  return template
+#</get_html_template_table>
 def get_page_template_create_stream():
   # TODO: automate div generation, i.e. <div %s><label>%s</label> and name=%s
   # TODO: move labels beneath boxes

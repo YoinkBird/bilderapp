@@ -6,6 +6,7 @@ from google.appengine.ext import ndb
 
 import webapp2
 
+import bilder_templates
 def genNav():
   #TODO: match link targets with the mockups, tie-in to 'application = webapp2.WSGIApplication'
   #TODO: autogenerate from dict with linktext->target
@@ -113,6 +114,34 @@ class MainPage(webapp2.RequestHandler):
                             (sign_query_params, cgi.escape(guestbook_name),
                              url, url_linktext))
 
+# * management (in which you take a user id and return two lists of streams)
+class Manage(webapp2.RequestHandler):
+  def get(self):
+    if users.get_current_user():
+        url = users.create_logout_url(self.request.uri)
+        url_linktext = 'Logout'
+    else:
+        url = users.create_login_url(self.request.uri)
+        url_linktext = 'Login'
+
+    # generate table headers
+    headerOwn = bilder_templates.generateTableRow(['Name','Last New Picture','Number of Pictures','Delete'])
+    headerSub = bilder_templates.generateTableRow(['Name','Last New Picture','Number of Pictures','Views','Unsubscribe'])
+
+    #TODO: add form to table to delete selected streams - just have a checkbox with the stream id
+    # https://apt.mybalsamiq.com/mockups/1083489.png?key=c6286db5bf27f95012252833d5214a336f17922c
+    response = '<html><body>'
+    response += TEMPLATE_NAVIGATION
+    response += '<h3>Streams I Own</h3>'
+    response += bilder_templates.get_html_template_table(headerOwn)
+    response += '<h3>Streams I Subscribe to</h3>'
+    response += bilder_templates.get_html_template_table(headerSub)
+    #response += bilder_templates.get_html_template_table()
+    response = bilder_templates.generateContainerDiv('<h1>Handler: Manage</h1>' + response,'#C0C0C0')
+    self.response.write(response)
+    #self.response.write('{"stream1": "name1", "payload": "some var"}')
+
+
 class Guestbook(webapp2.RequestHandler):
     def post(self):
         # We set the same parent key on the 'Greeting' to ensure each Greeting
@@ -142,9 +171,10 @@ class JsonTest(webapp2.RequestHandler):
   #TODO: adding 'return' breaks the page. This may be due to 'self.response.out.write'
   #return
 
-#TODO: can this be queried automatically to build the navigation?
+#TODO: use 'genNav' to autogenerate links, redirection OR somehow retrieve this list of tuples 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
+    ('/manage', Manage),
     ('/sign', Guestbook),
     ('/jsonreturntest',JsonTest),
 ], debug=True)
