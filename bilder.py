@@ -6,6 +6,44 @@ from google.appengine.ext import ndb
 
 import webapp2
 
+def genNav():
+  #TODO: fill in links
+  #TODO: autogenerate from dict with linktext->target
+  #TODO: use bullet list
+  #raw data: Manage Create View Search Trending Social 
+  navDict = {
+      'Manage'   : 'Manage',
+      'Create'   : 'Create',
+      'View'   : 'View',
+      'Search'   : 'Search',
+      'Trending'   : 'Trending',
+      'Social'   : 'Social',
+      }
+  #TODO: convert to 2d list or object or whatever
+  navList = [ "Manage", "Create", "View", "Search", "Trending", "Social", ]
+  navTr = ''
+  for param in navList:
+    tmplink = '<a href=%s>%s</a>' % (param , navDict[param])
+    tmptd   = '<td>%s</td>' % tmplink
+    navTr += tmptd
+    del tmplink
+    del tmptd
+    TEMPLATE_NAVIGATION = """\
+    <table border=1 cellspacing=0>
+      <tr>
+        <td colspan=6>TODO: assign correct link targets</td>
+      <tr>
+        %s
+      </tr>
+    </table>
+    """
+  navTable = TEMPLATE_NAVIGATION % navTr
+  return navTable
+#</genNav>
+
+    
+TEMPLATE_NAVIGATION = genNav()
+ 
 MAIN_PAGE_FOOTER_TEMPLATE = """\
     <form action="/sign?%s" method="post">
       <div><textarea name="content" rows="3" cols="60"></textarea></div>
@@ -20,6 +58,7 @@ MAIN_PAGE_FOOTER_TEMPLATE = """\
   </body>
 </html>
 """
+MAIN_PAGE_FOOTER_TEMPLATE = TEMPLATE_NAVIGATION + MAIN_PAGE_FOOTER_TEMPLATE
 
 DEFAULT_GUESTBOOK_NAME = 'default_guestbook'
 
@@ -103,6 +142,7 @@ class JsonTest(webapp2.RequestHandler):
   #TODO: adding 'return' breaks the page. This may be due to 'self.response.out.write'
   #return
 
+#TODO: can this be queried automatically to build the navigation?
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/sign', Guestbook),
