@@ -232,6 +232,29 @@ class Manage(webapp2.RequestHandler):
 #</class Manage>
 ###############################################################################
 
+###############################################################################
+#< class ViewSingleStream>
+# * view a stream (which takes a stream id and a page range and returns a list of URLs to images and a page range)
+# doc: different kinds of reqeust handlers
+# https://developers.google.com/appengine/docs/python/tools/webapp/requesthandlers
+#TODO: 'more pictures' https://piazza.com/class/hz1r799mk0ah?cid=56
+class ViewSingleStream(webapp2.RequestHandler):
+  def get(self):
+    # get stream name
+    stream_name = self.request.get('streamid','stream_unspecified')
+    query_params = urllib.urlencode({'streamid': stream_name})
+    action = '/img_upload?' + query_params 
+
+    # generate response
+    response = ''
+    response += bilder_templates.generateContainerDivBlue('image stream goes here')
+    response += bilder_templates.generateContainerDivBlue(bilder_templates.get_page_template_upload_file(action))
+    # boilerplate
+    response = bilder_templates.generateContainerDiv('<h1>Handler: ViewSingleStream</h1>' + response,'#C0C0C0')
+    response = bilder_templates.get_html_body_template(response)
+    self.response.write(response)
+#</class ViewSingleStream>
+###############################################################################
 
 #NOTE: 
 # Does not output to screen
@@ -272,6 +295,7 @@ class JsonTest(webapp2.RequestHandler):
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/manage', Manage),
+    ('/viewsinglestream', ViewSingleStream),
     ('/sign', Guestbook),
     ('/jsonreturntest',JsonTest),
 ], debug=True)

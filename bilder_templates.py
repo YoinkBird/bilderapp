@@ -5,6 +5,12 @@ def generateContainerDiv(containerTitle,bgcolor):
   return handlerContainer
 #</def generateContainerDiv>
 
+#< def generateContainerDivBlue>
+def generateContainerDivBlue(containerTitle):
+  divColor = '#B0C4DE'
+  return generateContainerDiv(containerTitle, divColor)
+#</def generateContainerDivBlue>
+
 #< generateTableRow>
 def generateTableRow(list):
   tableRow = ''
@@ -17,6 +23,19 @@ def generateTableRow(list):
   tableRow = '<tr>\n  %s\n</tr>' % tableRow
   return tableRow
 #</generateTableRow>
+
+#< def get_html_body_template>
+def get_html_body_template(bodycontent):
+  return '<html>\n  <body>\n' + bodycontent + '\n  </body>\n</html>'
+#</def get_html_body_template>
+
+#< def gen_html_form>
+#TODO: replace the lambda in 'class Manage' with this function
+def gen_html_form(action,method,submit_value,contents):
+  html_form = '<form action="%s" method="%s">\n  %s\n  <input type="submit" value="%s">\n</form>\n' % (action, method, contents,submit_value)
+  return html_form
+#</def gen_html_form>
+
 #< get_html_template_table>
 def get_html_template_table(tableRows):
   template = """\
@@ -34,6 +53,21 @@ def get_html_template_table(tableRows):
   return template
 #</get_html_template_table>
 
+#< get_page_template_upload_file>
+def get_page_template_upload_file(action):
+  template = """\
+  <div>
+    <p>#TODO: filename is probably 'friendly name', i.e. 'waterfall' instead of DSC02093</p>
+    <textarea name="file_name" rows="1" cols="60">File Name</textarea><br/>
+    <textarea name="file_comments" rows="1" cols="60">Comments</textarea><br/>
+    <input type="file" name="img"/><br/>
+    <!--<input type="submit" value="Upload File"><br/>-->
+  </div> 
+  """
+  #action = 'img_upload'
+  template = gen_html_form(action , 'post', 'Upload File', template)
+  return template
+#</get_page_template_upload_file>
 def get_page_template_create_stream():
   # TODO: automate div generation, i.e. <div %s><label>%s</label> and name=%s
   # TODO: move labels beneath boxes
