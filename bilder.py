@@ -7,23 +7,23 @@ from google.appengine.ext import ndb
 import webapp2
 
 def genNav():
-  #TODO: fill in links
+  #TODO: match link targets with the mockups, tie-in to 'application = webapp2.WSGIApplication'
   #TODO: autogenerate from dict with linktext->target
   #TODO: use bullet list
   #raw data: Manage Create View Search Trending Social 
   navDict = {
-      'Manage'   : 'Manage',
-      'Create'   : 'Create',
-      'View'   : 'View',
-      'Search'   : 'Search',
-      'Trending'   : 'Trending',
-      'Social'   : 'Social',
+      'Manage'   : 'manage',
+      'Create'   : 'create',
+      'View'   : 'view',
+      'Search'   : 'search',
+      'Trending'   : 'trending',
+      'Social'   : 'social',
       }
-  #TODO: convert to 2d list or object or whatever
+  #TODO: convert to 2d list or object or whatever, try to autogenerate initial link->target
   navList = [ "Manage", "Create", "View", "Search", "Trending", "Social", ]
   navTr = ''
   for param in navList:
-    tmplink = '<a href=%s>%s</a>' % (param , navDict[param])
+    tmplink = '<a href=%s>%s</a>' % (navDict[param], param)
     tmptd   = '<td>%s</td>' % tmplink
     navTr += tmptd
     del tmplink
