@@ -73,10 +73,16 @@ def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
     return ndb.Key('Guestbook', guestbook_name)
 
 class Greeting(ndb.Model):
+    #TODO: implement all the internal methods
     """Models an individual Guestbook entry."""
     author = ndb.UserProperty()
     content = ndb.StringProperty(indexed=False)
     date = ndb.DateTimeProperty(auto_now_add=True)
+
+    #TODO: implement these mocks
+    img_amount = 9
+    views = '99'
+
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
@@ -115,7 +121,14 @@ class MainPage(webapp2.RequestHandler):
                             (sign_query_params, cgi.escape(guestbook_name),
                              url, url_linktext))
 
+###############################################################################
+#< class Manage>
 # * management (in which you take a user id and return two lists of streams)
+#TODO:
+# balsamiq1: stream hyperlink goes to 'view a single stream' page, increases viewcount
+#TODO:
+# balsamiq2: return to management page on submission 
+# -> go to handler for deleting and then return to 'Manage'
 class Manage(webapp2.RequestHandler):
   def get(self):
     if users.get_current_user():
@@ -124,23 +137,113 @@ class Manage(webapp2.RequestHandler):
     else:
         url = users.create_login_url(self.request.uri)
         url_linktext = 'Login'
+    
+    # look up guestbook
+    guestbook_name = self.request.get('guestbook_name', DEFAULT_GUESTBOOK_NAME)
+    #< retrieve greetings>
+    # TODO: this part is good for 'manage'
+    # Ancestor Queries, as shown here, are strongly consistent with the High Replication Datastore. 
+    # Queries that span entity groups are eventually consistent.
+    # If we omitted the ancestor from this query there would be a slight chance 
+    #  that 'Greeting' that had just been written would not show up in a query.
 
-    # generate table headers
+    greetings_query = Greeting.query(
+        ancestor=guestbook_key(guestbook_name)).order(-Greeting.date)
+    greetings = greetings_query.fetch(10)
+
+    #TODO: stop calling it a greeting:
+
+    # calling it 'greetingsOwnList' for better conversion to 'streams i own' and 'streams i subscribe to'
+    #TODO: check that parameters in 'greeting' exist before assigning. even better, use getter methods
+    greetingsOwnList = []
+    for greeting in greetings:
+      greetingDict = {}
+      if greeting.author:
+        author = greeting.author.nickname()
+      else:
+        author = 'Anonymous'
+      greetingDict['author'] = author
+      greetingDict['content'] = cgi.escape(greeting.content)
+      greetingDict['date'] = str(greeting.date)
+      greetingDict['img_amount'] = str(greeting.img_amount)
+      greetingDict['views'] = str(greeting.views)
+      greetingsOwnList.append(greetingDict)
+    #</retrieve greetings>
+    greetSubTr = ''
+    greetOwnTr = ''
+
+    html_form_checkbox = lambda name,value: '<input type="checkbox" name="%s" value="%s">' % (name,value)
+    # own
+    # loop through all greetings
+    for greetDict in greetingsOwnList:
+      valueList = [] 
+      #TODO: make a list with common elements to 'own' and 'sub' and then just add on for 'sub'
+      attribOrderList = ['content','date','img_amount']
+      for attrib in attribOrderList:
+        valueList.append(greetDict[attrib])
+      # add the checkbox
+      # table 'delete' template
+      valueList.append(html_form_checkbox('stream_delete',greetDict['content']))
+      # build the row
+      greetOwnTr += bilder_templates.generateTableRow(valueList)
+    # subscribed
+    # loop through all greetings
+    for greetDict in greetingsOwnList:
+      valueList = [] 
+      attribOrderList = ['content','date','img_amount','views']
+      for attrib in attribOrderList:
+        valueList.append(greetDict[attrib])
+
+      # add the checkbox
+      valueList.append(html_form_checkbox('stream_unsub',greetDict['content']))
+      # build the row
+      greetSubTr += bilder_templates.generateTableRow(valueList)
+    #greetTable = bilder_templates.get_html_template_table(greetSubTr)
+
+
+    ## generate table headers
+    # table: own streams
     headerOwn = bilder_templates.generateTableRow(['Name','Last New Picture','Number of Pictures','Delete'])
-    headerSub = bilder_templates.generateTableRow(['Name','Last New Picture','Number of Pictures','Views','Unsubscribe'])
+    headerOwn += greetOwnTr
 
+    # table: own streams
+    headerSub = bilder_templates.generateTableRow(['Name','Last New Picture','Number of Pictures','Views','Unsubscribe'])
+    headerSub += greetSubTr
+
+    ## generate tables
+    table_streams_own = bilder_templates.get_html_template_table(headerOwn)
+    table_streams_sub = bilder_templates.get_html_template_table(headerSub)
+
+    ## generate form for delete/unsub stream
+    # define table layout: 
+    gen_html_form = lambda action,method,submit_value,contents: '<form action=%s" method="post">\n  %s\n<input type="submit" value="%s">\n</form>' % (action, contents,submit_value)
+
+    # form: own streams
+    #TODO: make a fancy button with the (X) on it
+    form_streams_own = gen_html_form('delete_stream','post','(X) Delete Checked Streams',table_streams_own)
+    form_streams_sub = gen_html_form('delete_stream','post','(X) Unsubscribed Checked Streams',table_streams_sub)
+
+
+
+    contentList = []
     #TODO: add form to table to delete selected streams - just have a checkbox with the stream id
     # https://apt.mybalsamiq.com/mockups/1083489.png?key=c6286db5bf27f95012252833d5214a336f17922c
     response = '<html><body>'
     response += TEMPLATE_NAVIGATION
-    response += '<h3>Streams I Own</h3>'
-    response += bilder_templates.get_html_template_table(headerOwn)
-    response += '<h3>Streams I Subscribe to</h3>'
-    response += bilder_templates.get_html_template_table(headerSub)
+    #response += greetTable
+    contentList.append('<h3>Streams I Own</h3>')
+    contentList.append(form_streams_own)
+    contentList.append('<h3>Streams I Subscribe to</h3>')
+    contentList.append(form_streams_sub)
+    for content in contentList:
+      response += content + '\n'
     #response += bilder_templates.get_html_template_table()
+    # wrap in grey div
     response = bilder_templates.generateContainerDiv('<h1>Handler: Manage</h1>' + response,'#C0C0C0')
     self.response.write(response)
     #self.response.write('{"stream1": "name1", "payload": "some var"}')
+#</class Manage>
+###############################################################################
 
 
 class Guestbook(webapp2.RequestHandler):
