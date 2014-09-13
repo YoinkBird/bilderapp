@@ -46,21 +46,6 @@ def genNav():
     
 TEMPLATE_NAVIGATION = genNav()
  
-MAIN_PAGE_FOOTER_TEMPLATE = """\
-    <form action="/sign?%s" method="post">
-      <div><textarea name="content" rows="3" cols="60"></textarea></div>
-      <div><input type="submit" value="Sign Guestbook"></div>
-    </form>
-    <hr>
-    <form>Guestbook name:
-      <input value="%s" name="guestbook_name">
-      <input type="submit" value="switch">
-    </form>
-    <a href="%s">%s</a>
-  </body>
-</html>
-"""
-MAIN_PAGE_FOOTER_TEMPLATE = TEMPLATE_NAVIGATION + MAIN_PAGE_FOOTER_TEMPLATE
 
 DEFAULT_GUESTBOOK_NAME = 'default_guestbook'
 
@@ -83,30 +68,20 @@ class Greeting(ndb.Model):
     img_amount = 9
     views = '99'
 
-
+###############################################################################
+#< class MainPage>
+# good for 'add stream'
+# balsamiq1: return to 'manage' page on form submit
 class MainPage(webapp2.RequestHandler):
     def get(self):
+        #TODO: convert multiple self.response.write calls into multiple string concats and one call 
         self.response.write('<html><body>')
+        handlerContainerOpen = '<div style="border-style:solid;border-width:1px;padding:0.5em 0 0.5em 0.5em;background-color:#C0C0C0">'
+        self.response.write(handlerContainerOpen)
+        self.response.write('<h1>MainPage aka Create Stream</h1>')
+        # look up guestbook
         guestbook_name = self.request.get('guestbook_name',
                                           DEFAULT_GUESTBOOK_NAME)
-
-        # Ancestor Queries, as shown here, are strongly consistent with the High
-        # Replication Datastore. Queries that span entity groups are eventually
-        # consistent. If we omitted the ancestor from this query there would be
-        # a slight chance that Greeting that had just been written would not
-        # show up in a query.
-        greetings_query = Greeting.query(
-            ancestor=guestbook_key(guestbook_name)).order(-Greeting.date)
-        greetings = greetings_query.fetch(10)
-
-        for greeting in greetings:
-            if greeting.author:
-                self.response.write(
-                        '<b>%s</b> wrote:' % greeting.author.nickname())
-            else:
-                self.response.write('An anonymous person wrote:')
-            self.response.write('<blockquote>%s</blockquote>' %
-                                cgi.escape(greeting.content))
 
         if users.get_current_user():
             url = users.create_logout_url(self.request.uri)
@@ -116,10 +91,17 @@ class MainPage(webapp2.RequestHandler):
             url_linktext = 'Login'
 
         # Write the submission form and the footer of the page
+        # TODO: not all form parameters are stored!
         sign_query_params = urllib.urlencode({'guestbook_name': guestbook_name})
-        self.response.write(MAIN_PAGE_FOOTER_TEMPLATE %
+
+        thisTemplate = TEMPLATE_NAVIGATION + bilder_templates.get_page_template_create_stream()
+        self.response.write(thisTemplate %
                             (sign_query_params, cgi.escape(guestbook_name),
                              url, url_linktext))
+        handlerContainerClose = '</div>'
+        self.response.write(handlerContainerClose)
+#</class MainPage>
+###############################################################################
 
 ###############################################################################
 #< class Manage>
@@ -246,6 +228,10 @@ class Manage(webapp2.RequestHandler):
 ###############################################################################
 
 
+#NOTE: 
+# Does not output to screen
+# Guestbook is user
+# greeting is stream
 class Guestbook(webapp2.RequestHandler):
     def post(self):
         # We set the same parent key on the 'Greeting' to ensure each Greeting
@@ -260,10 +246,12 @@ class Guestbook(webapp2.RequestHandler):
             greeting.author = users.get_current_user()
 
         greeting.content = self.request.get('content')
+        greeting.content = self.request.get('stream_name')
         greeting.put()
 
         query_params = {'guestbook_name': guestbook_name}
-        self.redirect('/?' + urllib.urlencode(query_params))
+        self.redirect('/manage?' + urllib.urlencode(query_params))
+
 # inspiration: http://stackoverflow.com/a/12664865
 # doc: https://developers.google.com/appengine/docs/python/tools/webapp/responseclass#Response_out
 # The contents of this object are sent as the body of the response when the request handler method returns.
