@@ -243,14 +243,37 @@ class Manage(webapp2.RequestHandler):
 #TODO: 'more pictures' https://piazza.com/class/hz1r799mk0ah?cid=56
 class ViewSingleStream(webapp2.RequestHandler):
   def get(self):
+    response = '' # store request response
     # get stream name
     stream_name = self.request.get('streamid','stream_unspecified')
     query_params = urllib.urlencode({'streamid': stream_name})
     action = '/img_upload?' + query_params 
 
+    # < image gallery>
+    # TODO: fail if stream not present - should only get here if one has been created already
+    # have to retrieve stream from DB
+    # make a query #TODO: figure out how to just get the one and only entry without needing an iterator
+    streams_query = Greeting.query( Greeting.content == stream_name)
+    # get results of query
+    streams = streams_query.fetch()
+    if(0): # DEBUG
+      response += 'streams_query:<br/>'+ repr(streams_query)
+      response +=  '<br/>'
+      response += 'streams: <br/>' + repr(streams)
+      response +=  '<br/>'
+    # loop through aaaaalllll of them (should only be one)
+    # TODO: range (default 3?), 'more pictures'
+    imageGalleryStr = '<p>Image Gallery</p>\n<p>TODO: implement proper images</p>'
+    imageGalleryRange = 3
+    for streamInstance in streams:
+      imageGalleryStr += "stream name: " + streamInstance.content
+      # see if there are any urls attached; if so then display them
+      if streamInstance.imgurls :
+        imageGalleryStr += '<div>|' + ' | '.join(streamInstance.imgurls[:imageGalleryRange]) + '|</div>'
+    # </image gallery>
+
     # generate response
-    response = ''
-    response += bilder_templates.generateContainerDivBlue('image stream goes here')
+    response += bilder_templates.generateContainerDivBlue(imageGalleryStr)
     response += bilder_templates.generateContainerDivBlue(bilder_templates.get_page_template_upload_file(action))
     # boilerplate
     response = bilder_templates.generateContainerDiv('<h1>Handler: ViewSingleStream</h1>' + response,'#C0C0C0')
