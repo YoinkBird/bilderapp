@@ -1,3 +1,4 @@
+import json
 import cgi
 import urllib
 
@@ -235,10 +236,41 @@ class Manage(webapp2.RequestHandler):
 #</class Manage>
 ###############################################################################
 
+
+###############################################################################
+# return all user streams instead of having to loop each time
+def getStreamImg(stream_id): # TODO: page range
+  # start with single stream
+  # TODO: fail if stream not present - should only get here if one has been created already
+  # have to retrieve stream from DB
+  # make a query #TODO: figure out how to just get the one and only entry without needing an iterator
+  streams_query = Greeting.query( Greeting.content == stream_id)
+  # get results of query
+  streams = streams_query.fetch()
+  if(0): # DEBUG
+    response += 'streams_query:<br/>'+ repr(streams_query)
+    response +=  '<br/>'
+    response += 'streams: <br/>' + repr(streams)
+    response +=  '<br/>'
+  # loop through aaaaalllll of them (there should only be one)
+  for streamInstance in streams:
+    # see if there are any urls attached; if so then display them
+    if streamInstance.imgurls :
+      imgList = streamInstance.imgurls
+  # </image gallery>
+
+  #TODO: return as json
+  range = len(imgList)
+  jsonStr = json.dumps({'imgurls':imgList,'range':range})
+  return jsonStr
+  return imgList
+#</def getStreamImg>
+###############################################################################
+
 ###############################################################################
 #< class ViewSingleStream>
 # * view a stream (which takes a stream id and a page range and returns a list of URLs to images and a page range)
-# doc: different kinds of reqeust handlers
+# doc: different kinds of request handlers
 # https://developers.google.com/appengine/docs/python/tools/webapp/requesthandlers
 #TODO: 'more pictures' https://piazza.com/class/hz1r799mk0ah?cid=56
 class ViewSingleStream(webapp2.RequestHandler):
@@ -250,29 +282,23 @@ class ViewSingleStream(webapp2.RequestHandler):
     action = '/img_upload?' + query_params 
 
     # < image gallery>
-    # TODO: fail if stream not present - should only get here if one has been created already
-    # have to retrieve stream from DB
-    # make a query #TODO: figure out how to just get the one and only entry without needing an iterator
-    streams_query = Greeting.query( Greeting.content == stream_name)
-    # get results of query
-    streams = streams_query.fetch()
-    if(0): # DEBUG
-      response += 'streams_query:<br/>'+ repr(streams_query)
-      response +=  '<br/>'
-      response += 'streams: <br/>' + repr(streams)
-      response +=  '<br/>'
-    # loop through aaaaalllll of them (should only be one)
+    imgDict = json.loads(getStreamImg(stream_name))
+    imgList = imgDict['imgurls']
     # TODO: range (default 3?), 'more pictures'
     imageGalleryStr = '<p>Image Gallery</p>\n<p>TODO: implement proper images</p>'
     imageGalleryRange = 3
-    for streamInstance in streams:
-      imageGalleryStr += "stream name: " + streamInstance.content
-      # see if there are any urls attached; if so then display them
-      if streamInstance.imgurls :
-        imageGalleryStr += '<div>|' + ' | '.join(streamInstance.imgurls[:imageGalleryRange]) + '|</div>'
+    if imgList:
+      imageGalleryStr += '<div>|' + ' | '.join(imgList[:imageGalleryRange]) + '|</div>'
     # </image gallery>
 
     # generate response
+    #from google.appengine.api import urlfetch
+
+    #url = "localhost:8080/jsonreturntest"
+    #result = urlfetch.fetch(url)
+
+    
+    
     response += bilder_templates.generateContainerDivBlue(imageGalleryStr)
     response += bilder_templates.generateContainerDivBlue(bilder_templates.get_page_template_upload_file(action))
     # boilerplate
