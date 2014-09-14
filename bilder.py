@@ -48,16 +48,26 @@ def genNav():
 TEMPLATE_NAVIGATION = genNav()
  
 
+#TODO: rename to 'DEFAULT_USER_NAME'
+#TODO: read username from user API
 DEFAULT_GUESTBOOK_NAME = 'default_guestbook'
+
+#NOTE: keep it simple:
+# Guestbook equ User (has a db key)
+# `- Greeting equ Stream
+#   `- photoList (simple list of urls to blobstore)
 
 # We set a parent key on the 'Greetings' to ensure that they are all in the same
 # entity group. Queries across the single entity group will be consistent.
 # However, the write rate should be limited to ~1/second.
 
+# TODO: rename
+# user_key
 def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
     """Constructs a Datastore key for a Guestbook entity with guestbook_name."""
     return ndb.Key('Guestbook', guestbook_name)
 
+# class Stream
 # doc on internal properties: https://developers.google.com/appengine/docs/python/ndb/properties
 class Greeting(ndb.Model):
     #TODO: implement all the internal methods
@@ -66,7 +76,15 @@ class Greeting(ndb.Model):
     content = ndb.StringProperty() # TODO: convert to 'streamid'
     date = ndb.DateTimeProperty(auto_now_add=True)
 
+    #TODO: no duplicate streams allowed - find a way to detect and error for collisions 
+    # https://developers.google.com/appengine/docs/python/ndb/properties#repeated
+    # repeated-True: Property value is a Python list containing values of the underlying type
+    # make sure to run str() for in-place editing, or overwrite list each time: 
+    #     "When you assign a new list, the types of the list items are validated immediately."
     imgurls = ndb.StringProperty(indexed=False, repeated=True)
+
+    #TODO: store image name and comments as well; either requires a new ndb class or could possibly also be handled by blobstore
+    # see https://developers.google.com/appengine/docs/python/ndb/properties#structured
 
     #TODO: implement these mocks
     img_amount = 9
@@ -382,6 +400,7 @@ class ImgUpload(webapp2.RequestHandler):
 # Does not output to screen
 # Guestbook is user
 # greeting is stream
+# photos is extra list
 class Guestbook(webapp2.RequestHandler):
     def post(self):
         # We set the same parent key on the 'Greeting' to ensure each Greeting
@@ -397,6 +416,10 @@ class Guestbook(webapp2.RequestHandler):
 
         greeting.content = self.request.get('content')
         greeting.content = self.request.get('stream_name')
+        # doc: https://developers.google.com/appengine/docs/python/ndb/modelclass#introduction
+        # The return value from put() is a Key, which can be used to retrieve the same entity later:
+        # p = Person(name='Arthur Dent', age=42)
+        # k = p.put()
         greeting.put()
 
         query_params = {'guestbook_name': guestbook_name}
@@ -422,3 +445,38 @@ application = webapp2.WSGIApplication([
     ('/sign', Guestbook),
     ('/jsonreturntest',JsonTest),
 ], debug=True)
+
+###############################################
+# notes
+
+# Still converting from 'guestbook' example
+# Guestbook equ User (has a db key)
+# `- Greeting equ Stream
+#   `- photoList (simple list of urls to blobstore)
+
+############# services ########################
+# TODO: all current handlers are written in one go to get things done. 
+#       Split them into sub-handlers to satisfy the below requirements
+#       epiphany: one handler is the client, one handler is the service
+'''
+Write specific services for
+* management (in which you take a user id and return two lists of streams)
+https://apt.mybalsamiq.com/mockups/1083489.png?key=c6286db5bf27f95012252833d5214a336f17922c
+* create a stream (which takes a stream definition and returns a status code)
+https://apt.mybalsamiq.com/mockups/1083503.png?key=c6286db5bf27f95012252833d5214a336f17922c
+* view a stream (which takes a stream id and a page range and returns a list of URLs to images and a page range)
+* image upload (which takes a stream id and a file)
+  # blobstore https://developers.google.com/appengine/docs/python/tools/webapp/blobstorehandlers
+* view all streams (which returns a list of names of streams and their cover images)
+* search streams (which takes a query string and returns a list of streams (titles and cover image urls) that contain matching text
+* most viewed streams (which returns a list of streams sorted by recent access frequency)
+* and reporting request.
+'''
+
+#NOTES:
+# for 'json request' https://developers.google.com/appengine/docs/python/tools/webapp/buildingtheresponse
+# blobstore https://developers.google.com/appengine/docs/python/tools/webapp/blobstorehandlers
+# request handler: https://developers.google.com/appengine/docs/python/tools/webapp/requesthandlerclass
+# request class, forms: https://developers.google.com/appengine/docs/python/tools/webapp/requestclass
+
+
