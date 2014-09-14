@@ -271,6 +271,8 @@ def getStreamImg(stream_id): # TODO: page range
     response += 'streams: <br/>' + repr(streams)
     response +=  '<br/>'
   # loop through aaaaalllll of them (there should only be one)
+  range = 0
+  imgList = []
   for streamInstance in streams:
     # see if there are any urls attached; if so then display them
     if streamInstance.imgurls :
