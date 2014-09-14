@@ -67,13 +67,18 @@ def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
     """Constructs a Datastore key for a Guestbook entity with guestbook_name."""
     return ndb.Key('Guestbook', guestbook_name)
 
-# class Stream
+###############################################################################
+#< class_Stream>
+# class Stream aka Greeting
 # doc on internal properties: https://developers.google.com/appengine/docs/python/ndb/properties
 class Greeting(ndb.Model):
+#class Stream(ndb.Model):
     #TODO: implement all the internal methods
     """Models an individual Guestbook entry."""
     author = ndb.UserProperty()
     content = ndb.StringProperty() # TODO: convert to 'streamid'
+    #streamid = content              # TODOno: created a stream and then double-check in the console - only 'streamid' gets updated for some reason
+    streamid = ndb.StringProperty() # TODO: convert to 'streamid'
     date = ndb.DateTimeProperty(auto_now_add=True)
 
     #TODO: no duplicate streams allowed - find a way to detect and error for collisions 
@@ -87,8 +92,11 @@ class Greeting(ndb.Model):
     # see https://developers.google.com/appengine/docs/python/ndb/properties#structured
 
     #TODO: implement these mocks
-    img_amount = 9
-    views = '99'
+    img_amount = ndb.IntegerProperty()
+    views = ndb.IntegerProperty()
+#</class_Stream>
+###############################################################################
+
 
 ###############################################################################
 #< class MainPage>
@@ -389,6 +397,7 @@ class ImgUpload(webapp2.RequestHandler):
         imgList.extend(streamInstance.imgurls)
       # write new list to object
       streamInstance.imgurls = imgList
+      streamInstance.img_amount = len(imgList)
       # re-store object
       streamInstance.put()
 
