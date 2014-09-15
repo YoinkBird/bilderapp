@@ -441,6 +441,8 @@ class GenericQueryService(webapp2.RequestHandler):
   def post(self):
     querydebug = 0 # 1: add bogus results 2: disable redirect, print some junk
     response = ''
+    # HACK: for automation, a script can pass in 'redirect=0' to prevent the redirect-induced error : '302|Found'
+    redirect = self.request.get('redirect',1) # for now, simply check if true is defined
 
     # TODO: ?look up all users?
     user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
@@ -478,23 +480,10 @@ class GenericQueryService(webapp2.RequestHandler):
     # define 'content' as 'name'
     for stream in streams:
       streamDescDict = {}
-      #for param in ['content','name','cover']
-      try: # content
-        streamDescDict['name'] = stream.content
-      except:
-        streamDescDict['name'] = 'no_content'
-      if(0):
-        try: # name
-          streamDescDict['name'] = stream.name
-        except:
-          streamDescDict['name'] = 'no_name'
-      try: # cover
-        streamDescDict['cover'] = stream.content
-      except:
-        streamDescDict['cover'] = 'no_cover'
 
       # https://developers.google.com/appengine/docs/python/ndb/modelclass#Model_to_dict
       streamDescDict = stream.to_dict(include=['tags','streamid'])
+
       # regex - don't add dict if no match
       add = 0
       if(queryExpression):
@@ -504,8 +493,20 @@ class GenericQueryService(webapp2.RequestHandler):
           queryExpression = '.*.%s.*' % queryExpression
         else: # match anything before and after query
           queryExpression = '.*%s.*' % queryExpression
-        for field in ['streamid']:#,'tags']:
-          if(re.match(queryExpression ,streamDescDict[field])):
+        # "search" is meant to be performed on certain attribs of Stream
+        #  however, some attribs are string, some could be int, some are repeated (list), etc
+        #  This means we can not simply re.match on the values of the dict because re.match does not accept list as an argument
+        # simplest way, off-hand, is to put all attribs meant for search into a list,
+        #   then re.match on each of the elements. 
+        stringList = []
+        # string attribs
+        for field in ['streamid']:
+          stringList.append(streamDescDict[field])
+        # repeated attribs (list)
+        for field in ['tags']:
+          stringList.extend(streamDescDict[field])
+        for field in stringList:
+          if(re.match(queryExpression ,field)):
             add |= 1 # or with one
             #continue
       else:
@@ -549,11 +550,13 @@ class GenericQueryService(webapp2.RequestHandler):
       response = 'json data:<br/>\n' + response
       response = bilder_templates.generateContainerDivBlue(response)
       response = bilder_templates.generateContainerDivBlue('<p>query params:</p>\n' + query_params)
+      response = bilder_templates.generateContainerDivBlue('<p>search_query:</p>\n' + queryExpression)
       self.response.write(response)
     else:
       self.response.write(response)
-      #TODO: dynamic
-      self.redirect(action)
+      #TODO: make 'action' a dynamic value (or create a form-handler that routes form requests)
+      if(redirect == 1): # self.redirect breaks other scripts with a '302|Found'
+        self.redirect(action)
 #</class_GenericSearchQuery>
 ###############################################################################
 
