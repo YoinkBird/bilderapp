@@ -65,7 +65,7 @@ DEFAULT_GUESTBOOK_NAME = 'default_guestbook'
 # user_key
 def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
     """Constructs a Datastore key for a Guestbook entity with guestbook_name."""
-    return ndb.Key('Guestbook', guestbook_name)
+    return ndb.Key('GuestbookNDB', guestbook_name)
 
 ###############################################################################
 #< class_Stream>
@@ -413,12 +413,15 @@ class ImgUpload(webapp2.RequestHandler):
 #< class ImgUpload>
 ###############################################################################
 
+
+
+###############################################################################
+#< class CreateStreamService>
 #NOTE: 
-# Does not output to screen
-# Guestbook is user
-# greeting is stream
-# photos is extra list
-class Guestbook(webapp2.RequestHandler):
+# Is not an explicit 'ndb.Model' class, probably where some of my confusion is coming from 
+#   creates and stores a 'Stream/Greeting' and uses 'ancestor key' to track it (the 'guestbook_key')
+# CreateStreamService equ create stream
+class CreateStreamService(webapp2.RequestHandler):
     def post(self):
         # We set the same parent key on the 'Greeting' to ensure each Greeting
         # is in the same entity group. Queries across the single entity group
@@ -426,21 +429,24 @@ class Guestbook(webapp2.RequestHandler):
         # should be limited to ~1/second.
         guestbook_name = self.request.get('guestbook_name',
                                           DEFAULT_GUESTBOOK_NAME)
-        greeting = Greeting(parent=guestbook_key(guestbook_name))
+        #NOTE: def guestbook_key: return ndb.Key('GuestbookNDB', DEFAULT_GUESTBOOK_NAME)
+        stream = Greeting(parent=guestbook_key(guestbook_name))
 
         if users.get_current_user():
-            greeting.author = users.get_current_user()
+            stream.author = users.get_current_user()
 
-        greeting.content = self.request.get('content')
-        greeting.content = self.request.get('stream_name')
+        stream.content = self.request.get('content')
+        stream.content = self.request.get('stream_name')
         # doc: https://developers.google.com/appengine/docs/python/ndb/modelclass#introduction
         # The return value from put() is a Key, which can be used to retrieve the same entity later:
         # p = Person(name='Arthur Dent', age=42)
         # k = p.put()
-        greeting.put()
+        stream.put()
 
         query_params = {'guestbook_name': guestbook_name}
         self.redirect('/manage?' + urllib.urlencode(query_params))
+#</class CreateStreamService>
+###############################################################################
 
 ###############################################################################
 #< class_JsonTest>
@@ -536,7 +542,7 @@ application = webapp2.WSGIApplication([
     ('/manage', Manage),
     ('/viewsinglestream', ViewSingleStream),
     ('/img_upload', ImgUpload),
-    ('/sign', Guestbook),
+    ('/sign', CreateStreamService), #TODO: rename
     ('/jsonreturntest',JsonTest),
 ], debug=True)
 
