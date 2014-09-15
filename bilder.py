@@ -14,6 +14,7 @@ def genNav():
   #TODO: use bullet list
   #raw data: Manage Create View Search Trending Social 
   navDict = {
+      'Home'   : '/',
       'Manage'   : 'manage',
       'Create'   : 'create',
       'View'   : 'view',
@@ -22,7 +23,7 @@ def genNav():
       'Social'   : 'social',
       }
   #TODO: convert to 2d list or object or whatever, try to autogenerate initial link->target
-  navList = [ "Manage", "Create", "View", "Search", "Trending", "Social", ]
+  navList = [ "Home", "Manage", "Create", "View", "Search", "Trending", "Social", ]
   navTr = ''
   for param in navList:
     tmplink = '<a href=%s>%s</a>' % (navDict[param], param)
@@ -105,10 +106,6 @@ class Greeting(ndb.Model):
 class MainPage(webapp2.RequestHandler):
     def get(self):
         #TODO: convert multiple self.response.write calls into multiple string concats and one call 
-        self.response.write('<html><body>')
-        handlerContainerOpen = '<div style="border-style:solid;border-width:1px;padding:0.5em 0 0.5em 0.5em;background-color:#C0C0C0">'
-        self.response.write(handlerContainerOpen)
-        self.response.write('<h1>MainPage aka Create Stream</h1>')
         # look up guestbook
         guestbook_name = self.request.get('guestbook_name',
                                           DEFAULT_GUESTBOOK_NAME)
@@ -120,18 +117,14 @@ class MainPage(webapp2.RequestHandler):
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
 
-        # Write the submission form and the footer of the page
-        # TODO: not all form parameters are stored!
-        sign_query_params = urllib.urlencode({'guestbook_name': guestbook_name})
+        response = TEMPLATE_NAVIGATION
+        response = bilder_templates.generateContainerDiv('<h1>Handler: MainPage<br/>(frmly Create Stream)</h1>' + response,'#C0C0C0')
+        response = '<html>\n  <body>\n' + response + '\n  </body>\n</html>'
 
-        thisTemplate = TEMPLATE_NAVIGATION + bilder_templates.get_page_template_create_stream()
-        self.response.write(thisTemplate %
-                            (sign_query_params, cgi.escape(guestbook_name),
-                             url, url_linktext))
-        handlerContainerClose = '</div>'
-        self.response.write(handlerContainerClose)
+        self.response.write(response)
 #</class MainPage>
 ###############################################################################
+
 
 ###############################################################################
 #< class Manage>
