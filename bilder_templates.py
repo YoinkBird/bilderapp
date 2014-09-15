@@ -96,11 +96,11 @@ def get_page_template_create_stream():
         </div>
         <div class="outline">
           <label for="textarea">Tag Your Stream</label><br/>
-          <textarea name="stream_tags" rows="2" cols="60"></textarea>
+          <textarea name="stream_tags" rows="2" cols="60">stream tags data</textarea>
         </div>
         <div class="outline">
           <label for="textarea">URL to Cover Image<br/>(optional)</label><br/>
-          <textarea name="stream_cover_url" rows="2" cols="60"></textarea>
+          <textarea name="stream_cover_url" rows="2" cols="60">cover img data</textarea>
         </div>
         <div><input type="submit" value="Create Stream"></div>
       </form>
