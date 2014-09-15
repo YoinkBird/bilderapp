@@ -422,29 +422,29 @@ class ImgUpload(webapp2.RequestHandler):
 #   creates and stores a 'Stream/Greeting' and uses 'ancestor key' to track it (the 'guestbook_key')
 # CreateStreamService equ create stream
 class CreateStreamService(webapp2.RequestHandler):
-    def post(self):
-        # We set the same parent key on the 'Greeting' to ensure each Greeting
-        # is in the same entity group. Queries across the single entity group
-        # will be consistent. However, the write rate to a single entity group
-        # should be limited to ~1/second.
-        guestbook_name = self.request.get('guestbook_name',
-                                          DEFAULT_GUESTBOOK_NAME)
-        #NOTE: def guestbook_key: return ndb.Key('GuestbookNDB', DEFAULT_GUESTBOOK_NAME)
-        stream = Greeting(parent=guestbook_key(guestbook_name))
+  def post(self):
+    # We set the same parent key on the 'Greeting' to ensure each Greeting
+    # is in the same entity group. Queries across the single entity group
+    # will be consistent. However, the write rate to a single entity group
+    # should be limited to ~1/second.
+    guestbook_name = self.request.get('guestbook_name',
+                                      DEFAULT_GUESTBOOK_NAME)
+    #NOTE: def guestbook_key: return ndb.Key('GuestbookNDB', DEFAULT_GUESTBOOK_NAME)
+    stream = Greeting(parent=guestbook_key(guestbook_name))
 
-        if users.get_current_user():
-            stream.author = users.get_current_user()
+    if users.get_current_user():
+        stream.author = users.get_current_user()
 
-        stream.content = self.request.get('content')
-        stream.content = self.request.get('stream_name')
-        # doc: https://developers.google.com/appengine/docs/python/ndb/modelclass#introduction
-        # The return value from put() is a Key, which can be used to retrieve the same entity later:
-        # p = Person(name='Arthur Dent', age=42)
-        # k = p.put()
-        stream.put()
+    stream.content = self.request.get('content')
+    stream.content = self.request.get('stream_name')
+    # doc: https://developers.google.com/appengine/docs/python/ndb/modelclass#introduction
+    # The return value from put() is a Key, which can be used to retrieve the same entity later:
+    # p = Person(name='Arthur Dent', age=42)
+    # k = p.put()
+    stream.put()
 
-        query_params = {'guestbook_name': guestbook_name}
-        self.redirect('/manage?' + urllib.urlencode(query_params))
+    query_params = {'guestbook_name': guestbook_name}
+    self.redirect('/manage?' + urllib.urlencode(query_params))
 #</class CreateStreamService>
 ###############################################################################
 
