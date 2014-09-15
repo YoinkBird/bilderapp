@@ -439,28 +439,40 @@ class ViewAllStreamsService(webapp2.RequestHandler):
 # * search streams (which takes a query string and returns a list of streams (titles and cover image urls) that contain matching text
 class GenericQueryService(webapp2.RequestHandler):
   def post(self):
-    querydebug = 1 # 1: add bogus results 2: disable redirect, print some junk
+    querydebug = 0 # 1: add bogus results 2: disable redirect, print some junk
     response = ''
 
     # TODO: ?look up all users?
     user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
+    #NOTE: default_value is only good if the form element was not submitted; even an empty box counts as data
+    #queryExpression = self.request.get('search_query', default_value='*') # TODO: use the * for returning all results
+    queryExpression = self.request.get('search_query') # for now, simply check if search_query is defined
     # look up streams
     #TODO: add a search
+    #   implement several modes
+    #   lookup: do the query by name, as for 'view single stream'
+    #   search: get everything, then regex match
+    #queryExpression = 'nerfherder'
+    # list of matched streams
+    queriedStreams = []
+    # exact filter
+    # 1. get exact string #TODO
+          #<stub> http://stackoverflow.com/a/12267140
+          #streams_query = Greeting.query(Greeting.content==queryExpression,
+          #    ancestor=guestbook_key(user_name)).order(-Greeting.date)
+          #</stub>
+    # no filter
+    # 2. get everything - no partial matches anyway
     streams_query = Greeting.query(
         ancestor=guestbook_key(user_name)).order(-Greeting.date)
+    queriedStreams = streams_query.fetch()
+      
     streams = streams_query.fetch()
     response += 'total queries found: ' + str(len(streams)) + '<br/>\n'
 
     # list of hashes
     streamsList = []
     # TODO: return real results; these are placeholders
-    if(querydebug >= 1):
-      tmpStreamsList = []
-      tmpStreamsList.append({'TODO':'return real results!'})
-      tmpStreamsList.append({'Service':'GenericQueryService'})
-      tmpStreamsList.append({'stream1':'title1'})
-      tmpStreamsList.append({'stream2':'title2'})
-      streamsList.extend(tmpStreamsList)
     #TODO: form a real query instead of try...except
     #TODO: once 'Greeting' object is fixed, remove check for 'content'
     # define 'content' as 'name'
@@ -471,15 +483,47 @@ class GenericQueryService(webapp2.RequestHandler):
         streamDescDict['name'] = stream.content
       except:
         streamDescDict['name'] = 'no_content'
-      try: # name
-        streamDescDict['name'] = stream.name
-      except:
-        streamDescDict['name'] = 'no_name'
+      if(0):
+        try: # name
+          streamDescDict['name'] = stream.name
+        except:
+          streamDescDict['name'] = 'no_name'
       try: # cover
         streamDescDict['cover'] = stream.content
       except:
         streamDescDict['cover'] = 'no_cover'
+      # regex - don't add dict if no match
+      if(queryExpression):
+        import re
+        #special case: raise error, v # invalid expression ; error: nothing to repeat
+        if(queryExpression == '*'):
+          queryExpression = '.*.%s.*' % queryExpression
+        else: # match anything before and after query
+          queryExpression = '.*%s.*' % queryExpression
+        if(not re.match(queryExpression ,streamDescDict['name'])):
+        #if(not re.match('.*'+queryExpression + '.*',streamDescDict['name'])):
+          continue
       streamsList.append(streamDescDict)
+    # 3. do a regex
+    # note: this is not a good idea; only supports full-word matches
+    #streams_query = Greeting.query( Greeting.content == queryExpression )
+    #if(queryExpression):
+    #for streamDict in streamsList
+
+    # < DEBUG - add fake results>
+    #TODO: fix this
+    if(querydebug >= 1):
+      tmpStreamsList = []
+      tmpStreamsList.append({'TODO':'return real results!'})
+      tmpStreamsList.append({'Service':'GenericQueryService'})
+      tmpStreamsList.append({'stream1':'title1'})
+      tmpStreamsList.append({'stream2':'title2'})
+      tmpStreamsList.append({'NOTE':'end_fakeresults'})
+      #streamsList.extend(tmpStreamsList)
+      #tmpStreamsList.extend(StreamsList)
+      #streamsList = tmpStreamsList
+      streamsList = tmpStreamsList + streamsList
+    # </DEBUG - add fake results>
 
     # prepare response as json
     jsonStr = json.dumps(streamsList)

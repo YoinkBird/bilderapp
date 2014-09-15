@@ -74,7 +74,8 @@ def get_html_template_search_form(**kwargs):
   template = ''
   template = """\
   <!--<p>#TODO: </p>-->
-  <textarea name="search_query" rows="1" cols="60">Riddle Me This</textarea><br/>
+  <label for="input">Riddle Me This:</label>
+  <input name="search_query">
   """
   template = gen_html_form(action , 'post', 'Search File', template)
   return template
