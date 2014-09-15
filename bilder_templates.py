@@ -1,13 +1,22 @@
 
 #< def generateContainerDiv>
-def generateContainerDiv(containerTitle,bgcolor):
-  handlerContainer = '<div style="border-style:solid;border-width:1px;padding:0.5em 0 0.5em 0.5em;background-color:%s;">%s</div>' % (bgcolor, containerTitle )
+#TODO: add kwargs and a 'header' option
+#TODO: convert all calls to use kwargs style
+def generateContainerDiv(containerTitle,bgcolor,**kwargs):
+  if(kwargs):
+    if('title' in kwargs):
+      titleP = '<p style="font-weight:bold">%s</p>' % kwargs['title']
+      containerTitle = titleP + containerTitle
+  divStyle = "border-style:solid;border-width:1px;padding:0.5em 0.5em 0.5em 0.5em;background-color:%s;" % bgcolor
+  handlerContainer = '<div style="%s">%s</div>' % (divStyle, containerTitle )
   return handlerContainer
 #</def generateContainerDiv>
 
 #< def generateContainerDivBlue>
+#TODO: add kwargs and a 'header' option
+#TODO: i guess this means inheritance would be nice
 def generateContainerDivBlue(containerTitle):
-  divColor = '#B0C4DE'
+  divColor = 'lightsteelblue' # reference: http://www.w3schools.com/html/html_colornames.asp
   return generateContainerDiv(containerTitle, divColor)
 #</def generateContainerDivBlue>
 
