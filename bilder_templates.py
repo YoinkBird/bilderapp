@@ -62,6 +62,24 @@ def get_html_template_table(tableRows):
   return template
 #</get_html_template_table>
 
+#< get_html_template_search_form>
+def get_html_template_search_form(**kwargs):
+  # default
+  action = '/searchallstreams'
+  # < speak now...>
+  if(kwargs): #TODO: json
+    if 'action' in kwargs:
+      action = kwargs['action']
+  # </or forever hold your peace.>
+  template = ''
+  template = """\
+  <!--<p>#TODO: </p>-->
+  <textarea name="search_query" rows="1" cols="60">Riddle Me This</textarea><br/>
+  """
+  template = gen_html_form(action , 'post', 'Search File', template)
+  return template
+#< get_html_template_search_form
+
 #< get_page_template_upload_file>
 def get_page_template_upload_file(action):
   template = """\

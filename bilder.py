@@ -19,7 +19,7 @@ def genNav():
       'Manage'   : 'manage',
       'Create'   : 'create',
       'View'     : 'viewallstreams',
-      'Search'   : 'search',
+      'Search'   : 'searchallstreams',
       'Trending'   : 'trending',
       'Social'   : 'social',
       }
@@ -435,6 +435,137 @@ class ViewAllStreamsService(webapp2.RequestHandler):
 
 
 ###############################################################################
+#< class_GenericSearchQuery>
+# * search streams (which takes a query string and returns a list of streams (titles and cover image urls) that contain matching text
+class GenericQueryService(webapp2.RequestHandler):
+  def post(self):
+    querydebug = 1 # 1: add bogus results 2: disable redirect, print some junk
+    response = ''
+
+    # TODO: ?look up all users?
+    user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
+    # look up streams
+    #TODO: add a search
+    streams_query = Greeting.query(
+        ancestor=guestbook_key(user_name)).order(-Greeting.date)
+    streams = streams_query.fetch()
+    response += 'total queries found: ' + str(len(streams)) + '<br/>\n'
+
+    # list of hashes
+    streamsList = []
+    # TODO: return real results; these are placeholders
+    if(querydebug >= 1):
+      tmpStreamsList = []
+      tmpStreamsList.append({'TODO':'return real results!'})
+      tmpStreamsList.append({'Service':'GenericQueryService'})
+      tmpStreamsList.append({'stream1':'title1'})
+      tmpStreamsList.append({'stream2':'title2'})
+      streamsList.extend(tmpStreamsList)
+    #TODO: form a real query instead of try...except
+    #TODO: once 'Greeting' object is fixed, remove check for 'content'
+    # define 'content' as 'name'
+    for stream in streams:
+      streamDescDict = {}
+      #for param in ['content','name','cover']
+      try: # content
+        streamDescDict['name'] = stream.content
+      except:
+        streamDescDict['name'] = 'no_content'
+      try: # name
+        streamDescDict['name'] = stream.name
+      except:
+        streamDescDict['name'] = 'no_name'
+      try: # cover
+        streamDescDict['cover'] = stream.content
+      except:
+        streamDescDict['cover'] = 'no_cover'
+      streamsList.append(streamDescDict)
+
+    # prepare response as json
+    jsonStr = json.dumps(streamsList)
+    response = jsonStr
+
+    # encode json for returning via GET
+    query_params = urllib.urlencode({'jsonstring': jsonStr})
+    action = '/searchallstreams?' + query_params 
+    #action = '/searchallstreams'
+
+    if(querydebug >= 2): #DEBUG
+      import pprint
+      self.response.write('streams list:\n' + pprint.pformat(streamsList))
+
+      response = 'json data:<br/>\n' + response
+      response = bilder_templates.generateContainerDivBlue(response)
+      response = bilder_templates.generateContainerDivBlue('<p>query params:</p>\n' + query_params)
+      self.response.write(response)
+    else:
+      self.response.write(response)
+      #TODO: dynamic
+      self.redirect(action)
+#</class_GenericSearchQuery>
+###############################################################################
+
+
+###############################################################################
+#< class_SearchAllStreamsService>
+# * search streams (which takes a query string and returns a list of streams (titles and cover image urls) that contain matching text
+  '''
+   balsamiq1:
+   * return to self on form submit
+   * show first 5 results and cover img
+   * click on cover img -> view stream page
+   * click on cover img -> incr numviews 
+      Note: this is in common with the normal 'view a stream' - reuse somehow!
+  '''
+
+class SearchAllStreamsService(webapp2.RequestHandler):
+  def get(self):
+    response = '' # content
+
+    jsonParam = self.request.get('jsonstring')
+
+    # < parse_json>
+    jsonStr = ''
+    if(jsonParam):
+      #TODO: validate json data - use function from failed start of this project
+      jsonData = json.loads(jsonParam)
+      jsonStr = jsonParam
+      if(1): #DEBUG info
+        jsonStr = '<br />\njson data:<br/> ' + jsonParam
+        import pprint
+        jsonStr += '<br/><br />\ndeserialised:<br/>' + '<pre>' +  pprint.pformat(jsonData,indent=4) + '</pre>'
+    # </parse_json>
+    # <start the gallery rendering>
+    galleryStr = ''
+    if(jsonStr):
+      galleryStr += jsonStr
+    else:
+      galleryStr += '<p>no images</p>'
+
+    response += bilder_templates.generateContainerDiv(galleryStr,'wheat',title='Stream Gallery')
+    #response += bilder_templates.generateContainerDiv(jsonStr,bgcolor='wheat',title='Stream Gallery')
+
+    # output page
+    response = self.genPageContent(response)
+    self.response.write(response)
+
+  def genPageContent(self,response):
+
+    #response = ''
+    form = bilder_templates.get_html_template_search_form(action='/genericquery')
+
+    # < consolidate and write response>
+    ## make navigation sit on top
+    response = TEMPLATE_NAVIGATION + response
+    response += bilder_templates.generateContainerDivBlue(form)
+    ## make header sit on top
+    response = bilder_templates.generateContainerDiv('<h1>Handler: SearchAllStreamsService</h1>' + response,'#C0C0C0')
+    response = bilder_templates.get_html_body_template(response)
+    return response
+#</class_SearchAllStreamsService>
+###############################################################################
+
+
 #< class ImgUpload>
 #TODO: for now, just store strings; do photos later
 #TODO: see https://developers.google.com/appengine/docs/python/tools/webapp/blobstorehandlers
@@ -715,6 +846,8 @@ application = webapp2.WSGIApplication([
     ('/manage', Manage),
     ('/viewsinglestream', ViewSingleStream),
     ('/viewallstreams', ViewAllStreamsService),
+    ('/searchallstreams', SearchAllStreamsService),
+    ('/genericquery', GenericQueryService),
     ('/img_upload', ImgUpload),
     ('/jsonreturntest',JsonTest),
 ], debug=True)
