@@ -4,6 +4,7 @@ import urllib
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from google.appengine.api import urlfetch
 
 import webapp2
 
@@ -17,7 +18,7 @@ def genNav():
       'Home'   : '/',
       'Manage'   : 'manage',
       'Create'   : 'create',
-      'View'   : 'view',
+      'View'     : 'viewallstreams',
       'Search'   : 'search',
       'Trending'   : 'trending',
       'Social'   : 'social',
@@ -335,6 +336,91 @@ class ViewSingleStream(webapp2.RequestHandler):
 #</class ViewSingleStream>
 ###############################################################################
 
+
+###############################################################################
+#< class_ViewAllStreamsService>
+#* view all streams (which returns a list of names of streams and their cover images)
+# balsamiq1:
+# * show cover img of each stream.
+# * sort in order of increasing creation time, starting top left
+class ViewAllStreamsService(webapp2.RequestHandler):
+  def post(self):
+    response = ''
+
+    # TODO: ?look up all users?
+    user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
+    # look up streams
+    streams_query = Greeting.query(
+        ancestor=guestbook_key(user_name)).order(-Greeting.date)
+    streams = streams_query.fetch()
+    response += 'total queries found: ' + str(len(streams))
+
+    # list of hashes
+    streamsList = []
+    #TODO: form a real query instead of try...except
+    #TODO: once 'Greeting' object is fixed, remove check for 'content'
+    # define 'content' as 'name'
+    for stream in streams:
+      streamDescDict = {}
+      #for param in ['content','name','cover']
+      try: # content
+        streamDescDict['name'] = stream.content
+      except:
+        streamDescDict['name'] = 'no_content'
+      try: # name
+        streamDescDict['name'] = stream.name
+      except:
+        streamDescDict['name'] = 'no_name'
+      try: # cover
+        streamDescDict['cover'] = stream.content
+      except:
+        streamDescDict['cover'] = 'no_cover'
+      streamsList.append(streamDescDict)
+
+    #response += '<br/>\n'.join(streamsList)
+    
+    jsonStr = json.dumps(streamsList)
+
+    response += 'json data:<br/>\n' + jsonStr
+
+    response = bilder_templates.generateContainerDivBlue(response)
+    if(0): # DEBUG: change 'def post(self)' to 'def get(self)' and comment out '''\ndef get(self)\n'''
+      self.response.write(response)
+    self.response.write(jsonStr)
+
+# debug post, then do get 
+  def get(self):
+    response = '' # content
+
+    # < query>
+    # create query_params
+    jsonStr = ''
+    url = self.request.host_url
+    service_url = '/viewallstreams'
+    #service_url = '/jsonreturntest'
+    url += service_url
+    #result = urlfetch.fetch(url + urllib.urlencode(query_params),method=urlfetch.POST)
+    result = urlfetch.fetch(url,method=urlfetch.POST)
+    if(result.status_code == 200):
+      jsonStr = 'Total Streams:<br/>\n'
+      jsonStr += result.content
+      #jsonStr += json.loads(result.content)
+    else:
+      jsonStr = 'request failed: ' + str(result.status_code)
+    response += bilder_templates.generateContainerDivBlue(jsonStr)
+    # < query>
+
+    # < consolidate and write response>
+    ## make navigation sit on top
+    response = TEMPLATE_NAVIGATION + response
+    ## make header sit on top
+    response = bilder_templates.generateContainerDiv('<h1>Handler: ViewAllStreamsService</h1>' + response,'#C0C0C0')
+    response = bilder_templates.get_html_body_template(response)
+    self.response.write(response)
+#</class_ViewAllStreamsService>
+###############################################################################
+
+
 ###############################################################################
 #< class ImgUpload>
 #TODO: for now, just store strings; do photos later
@@ -566,6 +652,7 @@ application = webapp2.WSGIApplication([
     ('/sign', CreateStreamService), #TODO: rename
     ('/manage', Manage),
     ('/viewsinglestream', ViewSingleStream),
+    ('/viewallstreams', ViewAllStreamsService),
     ('/img_upload', ImgUpload),
     ('/jsonreturntest',JsonTest),
 ], debug=True)
