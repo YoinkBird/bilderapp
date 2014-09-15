@@ -492,7 +492,11 @@ class GenericQueryService(webapp2.RequestHandler):
         streamDescDict['cover'] = stream.content
       except:
         streamDescDict['cover'] = 'no_cover'
+
+      # https://developers.google.com/appengine/docs/python/ndb/modelclass#Model_to_dict
+      streamDescDict = stream.to_dict(include=['tags','streamid'])
       # regex - don't add dict if no match
+      add = 0
       if(queryExpression):
         import re
         #special case: raise error, v # invalid expression ; error: nothing to repeat
@@ -500,10 +504,14 @@ class GenericQueryService(webapp2.RequestHandler):
           queryExpression = '.*.%s.*' % queryExpression
         else: # match anything before and after query
           queryExpression = '.*%s.*' % queryExpression
-        if(not re.match(queryExpression ,streamDescDict['name'])):
-        #if(not re.match('.*'+queryExpression + '.*',streamDescDict['name'])):
-          continue
-      streamsList.append(streamDescDict)
+        for field in ['streamid']:#,'tags']:
+          if(re.match(queryExpression ,streamDescDict[field])):
+            add |= 1 # or with one
+            #continue
+      else:
+        add = 1
+      if(add == 1):
+        streamsList.append(streamDescDict)
     # 3. do a regex
     # note: this is not a good idea; only supports full-word matches
     #streams_query = Greeting.query( Greeting.content == queryExpression )
