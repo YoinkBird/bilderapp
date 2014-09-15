@@ -410,6 +410,7 @@ class ImgUpload(webapp2.RequestHandler):
 
 ###############################################################################
 #< class CreateStreamService>
+# * create a stream (which takes a stream definition and returns a status code)
 #NOTE: 
 # Is not an explicit 'ndb.Model' class, probably where some of my confusion is coming from 
 #   creates and stores a 'Stream/Greeting' and uses 'ancestor key' to track it (the 'guestbook_key')
