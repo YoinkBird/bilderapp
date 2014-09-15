@@ -324,7 +324,8 @@ class ViewSingleStream(webapp2.RequestHandler):
     imgDict = json.loads(getStreamImg(stream_name))
     imgList = imgDict['imgurls']
     # TODO: range (default 3?), 'more pictures'
-    imageGalleryStr = '<p>Image Gallery</p>\n<p>TODO: implement proper images</p>'
+    imageGalleryStr = '<p>Image Gallery</p>\n'
+    imageGalleryStr += '<p>TODO: implement proper images</p>'
     imageGalleryRange = 3
     if imgList:
       imageGalleryStr += '<div>|' + ' | '.join(imgList[:imageGalleryRange]) + '|</div>'
@@ -369,28 +370,14 @@ class ViewAllStreamsService(webapp2.RequestHandler):
     response += 'total queries found: ' + str(len(streams))
 
     # list of hashes
+    #TODO: use 'GenericQueryService' 
     streamsList = []
-    #TODO: form a real query instead of try...except
-    #TODO: once 'Greeting' object is fixed, remove check for 'content'
-    # define 'content' as 'name'
     for stream in streams:
       streamDescDict = {}
-      #for param in ['content','name','cover']
-      try: # content
-        streamDescDict['name'] = stream.content
-      except:
-        streamDescDict['name'] = 'no_content'
-      try: # name
-        streamDescDict['name'] = stream.name
-      except:
-        streamDescDict['name'] = 'no_name'
-      try: # cover
-        streamDescDict['cover'] = stream.content
-      except:
-        streamDescDict['cover'] = 'no_cover'
+      # https://developers.google.com/appengine/docs/python/ndb/modelclass#Model_to_dict
+      streamDescDict = stream.to_dict(include=['streamid','coverurl'])
       streamsList.append(streamDescDict)
 
-    #response += '<br/>\n'.join(streamsList)
     
     jsonStr = json.dumps(streamsList)
 
@@ -416,7 +403,7 @@ class ViewAllStreamsService(webapp2.RequestHandler):
     result = urlfetch.fetch(url,method=urlfetch.POST)
     if(result.status_code == 200):
       jsonStr = 'Total Streams:<br/>\n'
-      jsonStr += result.content
+      jsonStr += htmlPprintJson(result.content)
       #jsonStr += json.loads(result.content)
     else:
       jsonStr = 'request failed: ' + str(result.status_code)
