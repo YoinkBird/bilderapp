@@ -445,6 +445,35 @@ class CreateStreamService(webapp2.RequestHandler):
 
     query_params = {'guestbook_name': guestbook_name}
     self.redirect('/manage?' + urllib.urlencode(query_params))
+
+  def get(self):
+    # look up guestbook
+    guestbook_name = self.request.get('guestbook_name', DEFAULT_GUESTBOOK_NAME)
+
+    # generate form content 
+    # Write the submission form and the footer of the page
+    # TODO: not all form parameters are stored!
+    sign_query_params = urllib.urlencode({'guestbook_name': guestbook_name})
+
+    thisTemplate = bilder_templates.get_page_template_create_stream()
+    url = 'delete this part'
+    url_linktext = 'delete this part'
+    populatedTemplate = (thisTemplate %
+                        (sign_query_params, cgi.escape(guestbook_name),
+                         url, url_linktext))
+
+    contentList = []
+    contentList.append(populatedTemplate)
+    #TODO: add form to table to delete selected streams - just have a checkbox with the stream id
+    # https://apt.mybalsamiq.com/mockups/1083489.png?key=c6286db5bf27f95012252833d5214a336f17922c
+    response = TEMPLATE_NAVIGATION
+    for content in contentList:
+      response += content + '\n'
+    #response += bilder_templates.get_html_template_table()
+    # wrap in grey div
+    response = bilder_templates.generateContainerDiv('<h1>Handler: CreateStreamService</h1>' + response,'#C0C0C0')
+    response = '<html>\n  <body>\n' + response + '\n  </body>\n</html>'
+    self.response.write(response)
 #</class CreateStreamService>
 ###############################################################################
 
@@ -539,10 +568,11 @@ class JsonTest(webapp2.RequestHandler):
 #TODO: use 'genNav' to autogenerate links, redirection OR somehow retrieve this list of tuples 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
+    ('/create', CreateStreamService),
+    ('/sign', CreateStreamService), #TODO: rename
     ('/manage', Manage),
     ('/viewsinglestream', ViewSingleStream),
     ('/img_upload', ImgUpload),
-    ('/sign', CreateStreamService), #TODO: rename
     ('/jsonreturntest',JsonTest),
 ], debug=True)
 
