@@ -336,6 +336,16 @@ class ViewSingleStream(webapp2.RequestHandler):
 #</class ViewSingleStream>
 ###############################################################################
 
+###############################################################################
+# print json strings in html-friendly format
+def htmlPprintJson(jsonParam):
+  jsonStr = ''
+  #jsonParam = json.dumps(object)
+  jsonData = json.loads(jsonParam)
+  import pprint
+  jsonStr += '<br />\njson.loads jsonString:<br/>' + '<pre>' +  pprint.pformat(jsonData,indent=4) + '</pre>'
+  return jsonStr
+###############################################################################
 
 ###############################################################################
 #< class_ViewAllStreamsService>
