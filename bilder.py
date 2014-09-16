@@ -82,6 +82,7 @@ class Greeting(ndb.Model):
     #streamid = content              # TODOno: created a stream and then double-check in the console - only 'streamid' gets updated for some reason
     streamid = ndb.StringProperty() # TODO: convert to 'streamid'
     date = ndb.DateTimeProperty(auto_now_add=True)
+    coverurl = ndb.StringProperty() # TODO: convert to 'streamid'
 
     #TODO: no duplicate streams allowed - find a way to detect and error for collisions 
     # https://developers.google.com/appengine/docs/python/ndb/properties#repeated
@@ -525,8 +526,16 @@ class CreateStreamService(webapp2.RequestHandler):
     if users.get_current_user():
         stream.author = users.get_current_user()
 
+    # TODO: add error checking for the return code
+    # set attributes, some are defaults
     stream.content = self.request.get('content')
     stream.content = self.request.get('stream_name')
+    stream.streamid = self.request.get('stream_name')
+    coverurl = self.request.get('cover_url')
+    if(not coverurl):
+      defaulturl = 'http://google.com/images'
+      coverurl = defaulturl
+    stream.coverurl = coverurl
     # doc: https://developers.google.com/appengine/docs/python/ndb/modelclass#introduction
     # The return value from put() is a Key, which can be used to retrieve the same entity later:
     # p = Person(name='Arthur Dent', age=42)
