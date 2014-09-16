@@ -80,7 +80,7 @@ class Greeting(ndb.Model):
     author = ndb.UserProperty()
     content = ndb.StringProperty() # TODO: convert to 'streamid'
     #streamid = content              # TODOno: created a stream and then double-check in the console - only 'streamid' gets updated for some reason
-    streamid = ndb.StringProperty() # TODO: convert to 'streamid'
+    streamid = ndb.StringProperty(required=True) # TODO: convert to 'streamid'
     date = ndb.DateTimeProperty(auto_now_add=True)
     coverurl = ndb.StringProperty()
     tags        = ndb.StringProperty(repeated=True)
@@ -537,7 +537,9 @@ class CreateStreamService(webapp2.RequestHandler):
     # set attributes, some are defaults
     stream.content = self.request.get('content')
     stream.content = self.request.get('stream_name')
-    stream.streamid = self.request.get('stream_name')
+    streamid = self.request.get('stream_name')
+    if(streamid):
+      stream.streamid = streamid
     coverurl = self.request.get('stream_cover_url')
     if(not coverurl):
       defaulturl = 'http://google.com/images'
@@ -597,7 +599,13 @@ class CreateStreamService(webapp2.RequestHandler):
     # The return value from put() is a Key, which can be used to retrieve the same entity later:
     # p = Person(name='Arthur Dent', age=42)
     # k = p.put()
-    stream.put()
+    #TODO: return error code from this operation
+    try:
+      stream.put()
+    except: # BadValueError: Entity has uninitialized properties: streamid
+    # https://wiki.python.org/moin/HandlingExceptions
+      error = "unknown - could not stream.put()"
+      self.response.write("bad query, returned:%s" % error)
 
     query_params = {'guestbook_name': guestbook_name}
     self.redirect('/manage?' + urllib.urlencode(query_params))
