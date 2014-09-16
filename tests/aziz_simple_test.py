@@ -9,6 +9,16 @@ import urllib
 #print opener.open("http://localhost:8080/").read()
 #
 
+# documentation
+# https://docs.python.org/release/2.6/library/httplib.html
+
+# https://developers.google.com/appengine/docs/python/tools/localunittesting
+# https://developers.google.com/appengine/docs/python/tools/handlertesting
+
+# information
+# https://webapp-improved.appspot.com/guide/request.html#registry
+# https://appengine.cloudbees.com/index.html
+# http://googleappengine.blogspot.com/2012/10/jenkins-meet-google-app-engine.html
  
 globals = {
            "server": "localhost",
@@ -21,13 +31,14 @@ globals = {
 horizline = ('#' * 32)
 
 def send_request(conn, url, req):
-    jsontest = 1
+    jsontest = 0
     params = ''
     if(jsontest == 1):
       print "json request params:"
       params = json.dumps(req)
       print '%s' % params
     else:
+      print "   request params (human readable): %s" % json.dumps(req)
       print "x-www-form-urlencoded request params:"
       params = urllib.urlencode(req)
       print '%s' % params
@@ -58,6 +69,7 @@ def place_create_request(conn):
 
 if __name__ == '__main__':
   # < read args>
+  # https://docs.python.org/2/library/optparse.html
   import optparse
   parser = optparse.OptionParser()
   options, args = parser.parse_args()
@@ -89,12 +101,28 @@ if __name__ == '__main__':
 
   
   conn = httplib.HTTPConnection(globals["server"],globals["port"])
-  serviceList = ['jsonreturntest']
+  # TODO: define dict of services and tests in order to specify test-specific defaults
+  # e.g.: testConfigDict =  {'jsonreturntest':{'contenttype':'json'}, 'genericquery':{'contenttype':'urlencode'},}
+  serviceList = [
+      'create',
+      'sign',
+      'manage',
+      'viewsinglestream',
+      'viewallstreams',
+      'searchallstreams',
+      #'genericquery',
+      'img_upload',
+      #'jsonreturntest',
+      ]
+  serviceList = ['jsonreturntest','genericquery']
+  serviceList.append( 'viewallstreams')
   for service in serviceList:
     print(horizline)
     print("testing: %s \n\n" % service)
     serviceUrl = '/' + service
     request = {"userId": globals["userId"]}
+    request['redirect'] = 0 # HACK for the query page
+    request['search_query'] = 'nerf|unicorn'
     send_request(conn,serviceUrl,request)
     print(horizline)
     print('\n')
