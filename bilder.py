@@ -887,7 +887,7 @@ class SubscribeStreamService(webapp2.RequestHandler):
     jsonOutputDict = {}
     jsonOutputDict['stream_info'] = {}
     jsonOutputDict['sub_info'] = {}
-    jsonOutputDict['sub_info']['unsub'] = {}
+    jsonOutputDict['sub_info']['status'] = 'nothingdone' # change to success/fail
 
     # TODO: rename
     guestbook_name = self.request.get('guestbook_name', DEFAULT_GUESTBOOK_NAME)
@@ -939,6 +939,10 @@ class SubscribeStreamService(webapp2.RequestHandler):
     if(subscriptionAction):
       ################################ 
       if(subscriptionAction == 'subscribe'):
+        jsonOutputDict['sub_info']['sub'] = {}
+        jsonOutputDict['sub_info']['sub']['sub_matches'] = []
+        jsonOutputDict['sub_info']['sub']['sub_fail'] = []
+        jsonOutputDict['sub_info']['sub']['total_matches'] = []
         streamSub = StreamSubscription(
             parent     = guestbook_key(guestbook_name),
             stream_id  = stream.key, # key -  Special property to store the Model key. 
@@ -949,43 +953,43 @@ class SubscribeStreamService(webapp2.RequestHandler):
         # NOTE: this puts AND logs
         jsonOutputDict['sub_info']['sub_key'] = repr(streamSub.put())
         jsonOutputDict['sub_info']['subscription_properites'] = streamSub.to_dict(exclude = ['stream_id','user_id','date','author'])
+        jsonOutputDict['sub_info']['status'] = '0'
       ################################ 
       # this will be called from a form where the subscription already exists; don't worry about duplicates as we are supposed to prevent those...
       # loop through all user_name subscriptions and find the ones pointing to 'stream_id'
       #   NOTE: duplicates would be bad
-      jsonOutputDict['sub_info']['unsub_matches'] = []
-      jsonOutputDict['sub_info']['unsub_fail'] = []
-      jsonOutputDict['sub_info']['unsub']['total_matches'] = []
       if(subscriptionAction == 'unsubscribe'):
+        jsonOutputDict['sub_info']['unsub'] = {}
+        jsonOutputDict['sub_info']['unsub']['unsub_success'] = []
+        jsonOutputDict['sub_info']['unsub']['unsub_failure'] = []
+        jsonOutputDict['sub_info']['unsub']['total_matches'] = []
         # query all subscriptions
         # Note: assume user_name is already spoofed/set as we are within the SubscribeStreamService and that is done a few lines above
         # get all user_name subscriptions
         subscription_query = StreamSubscription.get_subscribed_streams(user_name)
-        # probably for resetting the user_name in 'manage': user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
-        subsMatchList = subscription_query# no need for fetch, done in the 'get_subscribed_streams' method #.fetch()
+        subsMatchList = subscription_query
         jsonOutputDict['sub_info']['unsub']['amount_found'] = len(subsMatchList) # this matches
-        #jsonOutputDict['sub_info']['unsub']['thing'] = subsMatchList[0] #  'TypeError: StreamSubscription' proves that subsMatchList has subs
         userSubsList = []
         subReprList = []
         for user_sub in subsMatchList:
-          #subReprList.append(stream.to_dict(exclude = ['date','author'])) # IDIOT.interesting - this appends info from the stream - maybe not surprising?
           tmpSubDict = user_sub.to_dict(exclude = ['user_id','date','stream_id'])
           tmpSubDict['date'] = repr(user_sub.date)
           tmpSubDict['type'] = type(user_sub).__name__
-          subReprList.append(tmpSubDict) # interesting - this appends info from the stream - maybe not surprising?
+          subReprList.append(tmpSubDict)
           # vvv probably don't need this vvvv
           if(user_sub.stream_id == stream.key):
-            #jsonOutputDict['sub_info']['unsub_matches'].append(repr(user_sub.stream_id)) # this shows the stream info: "Key('GuestbookNDB', 'default_guestbook', 'Greeting', 'testname')",
             #TODO: add the subscription key, as we do for adding a subscription: "sub_key": "Key('GuestbookNDB', 'default_guestbook', 'StreamSubscription', 6225984592281600)",
             jsonOutputDict['sub_info']['unsub']['sub_key'] = repr(user_sub.stream_id)
-            jsonOutputDict['sub_info']['unsub']['streammatch_key'] = repr(user_sub.stream_id)
-            if(user_sub.key.delete()):
-              jsonOutputDict['sub_info']['unsub_matches'].append(repr(user_sub.stream_id))
+            jsonOutputDict['sub_info']['unsub']['streammatch_name'] = repr(stream.streamid)
+            if(user_sub.key.delete()): #TODO: why does success lead to else?
+              jsonOutputDict['sub_info']['unsub']['unsub_failure'].append(repr(user_sub.stream_id))
             else:
-              jsonOutputDict['sub_info']['unsub_fail'].append(repr(user_sub.stream_id))
+              jsonOutputDict['sub_info']['unsub']['unsub_success'].append(repr(user_sub.stream_id))
+            jsonOutputDict['sub_info']['status'] = '0'
         jsonOutputDict['sub_info']['unsub']['total_matches'] = subReprList
         #jsonOutputDict['sub_info']['sub_key'] = repr(streamSub.put())
         #jsonOutputDict['sub_info']['subscription_properites'] = streamSub.to_dict(exclude = ['stream_id','user_id','date','author'])
+      #</unsubscribe>
 
     self.response.write(json.dumps(jsonOutputDict))
     return 
