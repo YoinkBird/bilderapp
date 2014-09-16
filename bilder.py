@@ -158,7 +158,7 @@ class StreamSubscription(ndb.Model):
 
   @classmethod
   def get_by(cls, user_id, stream_id_key):
-     return cls.query(cls.user_id == user_id, cls.movie == stream_id_key).get()
+     return cls.query(cls.user_id == user_id, cls.stream_id == stream_id_key).get()
 #</>
 ###############################################################################
 
@@ -225,6 +225,26 @@ class Manage(webapp2.RequestHandler):
     #TODO: phasing in 'user_name' instead of 'guestbook_name'; don't want to have to do a global find/replace and then test any ensuing messes
     user_name = self.request.get('guestbook_name', DEFAULT_GUESTBOOK_NAME)
     user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
+    # < debug query subscriptions>
+    subscription_query = StreamSubscription.query(
+        ancestor=guestbook_key(user_name))#.order(-Greeting.date)
+    #TODO: debug this, from http://stackoverflow.com/a/11724844 # subscription_query = StreamSubscription.get_subscribed_streams(user_name)
+    # vvv doesn't work: BadValueError: Expected User, got 'default_guestbook'  vvvvv
+    #subscription_query = StreamSubscription.get_subscribed_streams(user_name)
+    # mock user: # src: http://stackoverflow.com/a/6230083
+    import os
+    os.environ['USER_EMAIL'] = 'poland.barker@swedishcomedy.com'
+    os.environ['USER_ID'] = 'pbarker'
+    #os.environ['AUTH_DOMAIN'] = 'testbed' # To avoid  /google/appengine/api/users.py:115 - AssertionError: assert _auth_domain
+    #os.environ['USER_IS_ADMIN'] = '1'     #  for an administrative user
+    #user_name = 'poland_barker'
+    if users.get_current_user():
+        user_name = users.get_current_user()
+    #user_name = 'pbarker'
+    subscription_query = StreamSubscription.get_subscribed_streams(user_name)
+    user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
+    # < debug query subscriptions>
+
     #< retrieve greetings>
     # TODO: this part is good for 'manage'
     # Ancestor Queries, as shown here, are strongly consistent with the High Replication Datastore. 
@@ -235,11 +255,23 @@ class Manage(webapp2.RequestHandler):
     greetings_query = Greeting.query(
         ancestor=guestbook_key(user_name)).order(-Greeting.date)
     greetings = greetings_query.fetch(10)
+    #DEBUG
+    if(0):
+      debugStr = str(greetings_query)
+      debugStr += '<br/>\n'
+      debugStr += '<br/>\n'
+      debugStr += '<br/>\n'
+      debugStr += '<br/>\n'
+      debugStr = str(greetings)
+      debugStr += '<br/>\n'
+
+      self.response.write(debugStr)
+      return
 
     #TODO: stop calling it a greeting:
 
     # calling it 'greetingsOwnList' for better conversion to 'streams i own' and 'streams i subscribe to'
-    #TODO: check that parameters in 'greeting' exist before assigning. even better, use getter methods
+    #TODO: get the stream that 'subscription' points to
     greetingsOwnList = []
     for greeting in greetings:
       greetingDict = {}
@@ -260,15 +292,65 @@ class Manage(webapp2.RequestHandler):
       greetingsOwnList.append(greetingDict)
     #</retrieve greetings>
     # < query subscriptions>
-    subscription_query = StreamSubscription.query(
-        ancestor=guestbook_key(user_name))#.order(-Greeting.date)
+    #subscription_query = StreamSubscription.query(
+    #    ancestor=guestbook_key(user_name))#.order(-Greeting.date)
     #TODO: debug this, from http://stackoverflow.com/a/11724844 # subscription_query = StreamSubscription.get_subscribed_streams(user_name)
-    subsMatchList = subscription_query.fetch()
+    subsMatchList = subscription_query#.fetch()
     # store data from all matches
     userSubsList = []
     for sub in subsMatchList:
       subParamDict = sub.to_dict(exclude=['date'])
-      userSubsList.append(subParamDict)
+      #userSubsList.append(subParamDict) # this is the StreamSubscription object, no point in that now is there, love?
+      # WARNING: DO NOT LET GO OF THIS! vvvv
+      #userSubsList.append(subParamDict['stream_id'].get()) # that's more like it, I hope
+      userSubsList.append(subParamDict['stream_id'].get().to_dict()) # that's more like it, I hope
+      # WARNING: DO NOT LET GO OF THIS! ^^^^
+      ### vvvvvvvvv new stuff vvvvvvvvvvvvvvvvvvvv
+      if(0):
+        for attrib in subParamDict:
+          self.response.write(attrib + ' = ' + str(subParamDict[attrib]) + ' is ' + type(subParamDict[attrib]).__name__)
+          self.response.write('<br/>\n')
+          if(attrib == 'stream_id'):
+            #self.response.write('streamid = %s' % Greeting.get_by_id())
+            if('user_id' in subParamDict):
+              self.response.write('ATTEMPT 1 <br/>\n')
+              tmpUserId = subParamDict['user_id']
+              # step1, now store in tmpStream
+              #self.response.write('streamid = %s' % StreamSubscription.get_by(tmpUserId,subParamDict['stream_id']))
+              self.response.write('object:%s | type: %s<br/>\n' % (tmpUserId,type(tmpUserId).__name__))
+              # step2
+              self.response.write('ATTEMPT 2 <br/>\n')
+              tmpStream = StreamSubscription.get_by(tmpUserId,subParamDict['stream_id'])
+              self.response.write('streamid = %s' % tmpStream)
+              self.response.write('<br/>\n')
+              self.response.write('  type = %s' % type(tmpStream).__name__)
+              self.response.write('<br/>\n')
+              # step3
+              if(1):
+                self.response.write('ATTEMPT 3 <br/>\n')
+                objectkey = subParamDict['stream_id'].get() ### <--- winnrar! 
+                self.response.write('<br/>\n')
+                self.response.write('#' * 64)
+                self.response.write('<br/>\n')
+                self.response.write('object:<br/>%s | type: %s<br/>\n' % (objectkey,type(objectkey).__name__))
+                self.response.write('#' * 64)
+                #self.response.write(objectkey)
+                self.response.write('<br/>\n')
+                self.response.write(str(subParamDict['stream_id']))
+                self.response.write('<br/>\n')
+                self.response.write('parent:<br/>\n')
+                self.response.write(subParamDict['stream_id'].parent())
+                tmpStream = Greeting.get_by_id(str(subParamDict['stream_id']))
+                self.response.write('streamid = %s' % tmpStream)
+                self.response.write('<br/>\n')
+                self.response.write('  type = %s' % type(tmpStream).__name__)
+                self.response.write('<br/>\n')
+          self.response.write('<br/>\n')
+          self.response.write('<br/>\n')
+          self.response.write('<br/>\n')
+        #self.response.write('subparamdict:<br/>\n:' + htmlPprintJson(json.dumps(subParamDict)))
+        #StreamSubscription.get_subscribed_streams(user_name)
+      ### ^^^^^^^^^ new stuff ^^^^^^^^^^^^^^^^^^^^
     # </query subscriptions>
     greetSubTr = ''
     greetOwnTr = ''
@@ -288,20 +370,24 @@ class Manage(webapp2.RequestHandler):
       valueList.append(html_form_checkbox('stream_delete',greetDict['content']))
       # build the row
       greetOwnTr += bilder_templates.generateTableRow(valueList)
-    # subscribed
-    # loop through all greetings
-    for greetDict in userSubsList:
+
+
+    # < subscribed table>
+    # loop through all subscriptions
+    for subDict in userSubsList:
       valueList = [] 
-      #attribOrderList = ['content','date','img_amount','views']
-      #for attrib in attribOrderList:
-      for attrib in greetDict:
-        valueList.append(greetDict[attrib])
+      #valueList.append(subDict.to_dict())
+      attribOrderList = ['content','date','img_amount','views']
+      for attrib in attribOrderList:
+      #solved: for attrib in subDict:
+        valueList.append(subDict[attrib])
+        #solved: valueList.append(attrib + ' = ' + str(subDict[attrib]) + ' is ' + type(subDict[attrib]).__name__)
 
       # add the checkbox
-      #valueList.append(html_form_checkbox('stream_unsub',greetDict['content']))
+      #valueList.append(html_form_checkbox('stream_unsub',subDict['content']))
       # build the row
       greetSubTr += bilder_templates.generateTableRow(valueList)
-    #greetTable = bilder_templates.get_html_template_table(greetSubTr)
+    # < /subscribed table>
 
 
 
