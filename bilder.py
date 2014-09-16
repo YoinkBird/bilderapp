@@ -546,55 +546,33 @@ class CreateStreamService(webapp2.RequestHandler):
       coverurl = defaulturl
     stream.coverurl = coverurl
 
-    # repeated properties
+    # update repeated properties
+    # TODO: move all of this into the stream model
     # TODO: see 'validator' under https://developers.google.com/appengine/docs/python/ndb/properties#options
     # validator: Optional function to validate and possibly coerce the value.
-
-
-    # hacks - 
-    # < stream_tags -> tags>
-    param    = 'stream_tags'
-    property = 'tags'
-    requestGetValue = self.request.get(param)
-    # uniqify list
-    tagListStr = requestGetValue
-    tagListTmp = tagListStr.split(' ')
-    tmpSet     = set(tagListTmp)
-    tagListTmp = list(tmpSet)
-    value = tagListTmp
-    #stream.populate(property = value) # AttributeError: type object 'Greeting' has no attribute 'property'
-    #stream.populate(Greeting._properties[property] = value) # SyntaxError: keyword can't be an expression
-    setattr(stream,property,value) # http://stackoverflow.com/q/18682517
-    # </stream_tags -> tags>
-
-    # < stream_subscribers -> subscribers>
-    param = 'stream_subscribers'
-    requestGetValue = self.request.get(param)
-    # uniqify list
-    listStr   = requestGetValue
-    tmpList  = listStr.split(' ')
-    tmpSet   = set(tmpList)
-    tmpList  = list(tmpSet)
-    value = tmpList
-    property = param
-    stream.populate(subscribers = value)
-    # </stream_subscribers -> subscribers>
-
-    
-    # map request data to model data
+    # stream_tags -> tags
+    # stream_subscribers -> subscribers
+    # map request data to model data:
     paramDict = {
-        #'stream_tags':stream.tags,
-        'stream_tags':'tags'
-        }
+      #'stream_tags':stream.tags,
+      'stream_tags':'tags',
+      'stream_subscribers':'subscribers',
+    }
+    for param in paramDict:                         # e.g. 'stream_tags'
+      requestGetValue = self.request.get(param)     # e.g. #yolo #yolo #deletelastword
+      if(requestGetValue):
+        property = paramDict[param]                 # e.g. 'tags'
+        # < uniqify list>
+        #TODO: check type before uniqifying, or just add this as a function to the class
+        listStr   = requestGetValue
+        tmpList  = listStr.split(' ') #TODO: check for newline, ';', ',', etc 
+        tmpSet   = set(tmpList)
+        tmpList  = list(tmpSet)
+        value = tmpList                             # e.g. #yolo #deletelastword
+        # </uniqify list>
+        setattr(stream,property,value) # http://stackoverflow.com/q/18682517
 
-    # this doesn't work
-    for param in paramDict:
-      continue
-      value = self.request.get(param)
-      if(value):
-        #paramDict[param] = param
-        property = paramDict[param]
-        stream.populate(property=value)
+    # < put operation>
     # doc: https://developers.google.com/appengine/docs/python/ndb/modelclass#introduction
     # The return value from put() is a Key, which can be used to retrieve the same entity later:
     # p = Person(name='Arthur Dent', age=42)
