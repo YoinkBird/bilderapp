@@ -860,6 +860,88 @@ class ImgUpload(webapp2.RequestHandler):
 ###############################################################################
 
 
+#< htmlParen>
+# wrap in p-tags
+def htmlParen(string):
+  string = '<p>%s</p>\n' % string
+  return string
+#</htmlParen>
+
+
+###############################################################################
+# pass in stream by name
+# create new 'subscripton' for user, stream
+# step1: copy in 'CreateStreamService' and verify functionality
+# step2: remove unneeded chunks
+# caveat: some are needed to make original function work but are not needed here
+# step3: add in new stuff
+class SubscribeStreamService(webapp2.RequestHandler):
+  def post(self):
+    # expect 'jsonstr' with everything in it
+    #jsonInputDict = json.loads(self.request.get('jsonstr'))
+    jsonOutputDict = {}
+    jsonOutputDict['stream_info'] = {}
+    jsonOutputDict['sub_info'] = {}
+
+    # TODO: rename
+    guestbook_name = self.request.get('guestbook_name', DEFAULT_GUESTBOOK_NAME)
+    user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
+    streamid = self.request.get('stream_name')
+
+    # TEMP - look up string by id - TODO: handle with GenericQueryService
+    queryExpression = streamid
+    streams_query = Greeting.query(
+        Greeting.content==queryExpression,
+        ancestor=guestbook_key(user_name)).order(-Greeting.date)
+    queriedStreams = streams_query.fetch()
+    jsonOutputDict['stream_info']['number_found_streams'] = len(queriedStreams)
+
+    streamReprList = []
+    for stream in queriedStreams:
+      streamReprList.append(stream.to_dict(exclude = ['date','author']))
+    jsonOutputDict['stream_info']['total_streams'] = streamReprList
+    #VIM: jump to empty line: shift^] shift^[
+
+    #stream = streams_query.fetch()[0]
+    stream = streams_query.get()
+    #jsonOutputDict['stream_info']['found_streams_properites'] = stream.to_dict(exclude = ['date','author'])
+
+    if users.get_current_user():
+        stream.author = users.get_current_user()
+    else:
+      #  stream.author = 'anonymous' - nono! it's a usertype, can't simply asign
+      # < mock user>
+      # mock user: # src: http://stackoverflow.com/a/6230083
+      import os
+      os.environ['USER_EMAIL'] = 'poland.barker@swedishcomedy.com'
+      os.environ['USER_ID'] = 'pbarker'
+      #   < more mock user values>
+      #os.environ['AUTH_DOMAIN'] = 'testbed' # To avoid  /google/appengine/api/users.py:115 - AssertionError: assert _auth_domain
+      #os.environ['USER_IS_ADMIN'] = '1'     #  for an administrative user
+      #   </more mock user values>
+      # </mock user>
+    user_name = stream.author
+
+    ####################################################################
+    # NOTE: key can be  '.key' returns either 'ID' or 'Key Name':
+    #   GuestbookNDB: name=default_guestbook > Greeting: name=this_has_a_subscription
+    #   GuestbookNDB: name=default_guestbook > Greeting: id=6650945836417024
+    # test the new streamsubscription class
+    streamSub = StreamSubscription(
+        parent     = guestbook_key(guestbook_name),
+        stream_id  = stream.key, # key -  Special property to store the Model key. 
+
+        user_id    = user_name,
+        subscribed = True,
+      )
+    #debug output
+    jsonOutputDict['sub_info']['sub_key'] = repr(streamSub.put())
+    jsonOutputDict['sub_info']['subscription_properites'] = streamSub.to_dict(exclude = ['stream_id','user_id','date','author'])
+
+    self.response.write(json.dumps(jsonOutputDict))
+    return 
+###############################################################################
+
 
 ###############################################################################
 #< class CreateStreamService>
@@ -1112,6 +1194,7 @@ application = webapp2.WSGIApplication([
     ('/genericquery', GenericQueryService),
     ('/img_upload', ImgUpload),
     ('/jsonreturntest',JsonTest),
+    ('/streamsubscribe',SubscribeStreamService),
 ], debug=True)
 
 ###############################################
