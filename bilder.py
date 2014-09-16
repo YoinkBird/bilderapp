@@ -879,6 +879,7 @@ def htmlParen(string):
 # step2: remove unneeded chunks
 # caveat: some are needed to make original function work but are not needed here
 # step3: add in new stuff
+# TODO: run this from the 'viewsinglestream' page
 class SubscribeStreamService(webapp2.RequestHandler):
   def post(self):
     # expect 'jsonstr' with everything in it
@@ -886,11 +887,16 @@ class SubscribeStreamService(webapp2.RequestHandler):
     jsonOutputDict = {}
     jsonOutputDict['stream_info'] = {}
     jsonOutputDict['sub_info'] = {}
+    jsonOutputDict['sub_info']['unsub'] = {}
 
     # TODO: rename
     guestbook_name = self.request.get('guestbook_name', DEFAULT_GUESTBOOK_NAME)
     user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
     streamid = self.request.get('stream_name')
+
+    # sub or rm?
+    subscriptionAction = self.request.get('action',)
+    
 
     # TEMP - look up string by id - TODO: handle with GenericQueryService
     queryExpression = streamid
@@ -930,17 +936,56 @@ class SubscribeStreamService(webapp2.RequestHandler):
     # NOTE: key can be  '.key' returns either 'ID' or 'Key Name':
     #   GuestbookNDB: name=default_guestbook > Greeting: name=this_has_a_subscription
     #   GuestbookNDB: name=default_guestbook > Greeting: id=6650945836417024
-    # test the new streamsubscription class
-    streamSub = StreamSubscription(
-        parent     = guestbook_key(guestbook_name),
-        stream_id  = stream.key, # key -  Special property to store the Model key. 
+    if(subscriptionAction):
+      ################################ 
+      if(subscriptionAction == 'subscribe'):
+        streamSub = StreamSubscription(
+            parent     = guestbook_key(guestbook_name),
+            stream_id  = stream.key, # key -  Special property to store the Model key. 
 
-        user_id    = user_name,
-        subscribed = True,
-      )
-    #debug output
-    jsonOutputDict['sub_info']['sub_key'] = repr(streamSub.put())
-    jsonOutputDict['sub_info']['subscription_properites'] = streamSub.to_dict(exclude = ['stream_id','user_id','date','author'])
+            user_id    = user_name,
+            subscribed = True,
+          )
+        # NOTE: this puts AND logs
+        jsonOutputDict['sub_info']['sub_key'] = repr(streamSub.put())
+        jsonOutputDict['sub_info']['subscription_properites'] = streamSub.to_dict(exclude = ['stream_id','user_id','date','author'])
+      ################################ 
+      # this will be called from a form where the subscription already exists; don't worry about duplicates as we are supposed to prevent those...
+      # loop through all user_name subscriptions and find the ones pointing to 'stream_id'
+      #   NOTE: duplicates would be bad
+      jsonOutputDict['sub_info']['unsub_matches'] = []
+      jsonOutputDict['sub_info']['unsub_fail'] = []
+      jsonOutputDict['sub_info']['unsub']['total_matches'] = []
+      if(subscriptionAction == 'unsubscribe'):
+        # query all subscriptions
+        # Note: assume user_name is already spoofed/set as we are within the SubscribeStreamService and that is done a few lines above
+        # get all user_name subscriptions
+        subscription_query = StreamSubscription.get_subscribed_streams(user_name)
+        # probably for resetting the user_name in 'manage': user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
+        subsMatchList = subscription_query# no need for fetch, done in the 'get_subscribed_streams' method #.fetch()
+        jsonOutputDict['sub_info']['unsub']['amount_found'] = len(subsMatchList) # this matches
+        #jsonOutputDict['sub_info']['unsub']['thing'] = subsMatchList[0] #  'TypeError: StreamSubscription' proves that subsMatchList has subs
+        userSubsList = []
+        subReprList = []
+        for user_sub in subsMatchList:
+          #subReprList.append(stream.to_dict(exclude = ['date','author'])) # IDIOT.interesting - this appends info from the stream - maybe not surprising?
+          tmpSubDict = user_sub.to_dict(exclude = ['user_id','date','stream_id'])
+          tmpSubDict['date'] = repr(user_sub.date)
+          tmpSubDict['type'] = type(user_sub).__name__
+          subReprList.append(tmpSubDict) # interesting - this appends info from the stream - maybe not surprising?
+          # vvv probably don't need this vvvv
+          if(user_sub.stream_id == stream.key):
+            #jsonOutputDict['sub_info']['unsub_matches'].append(repr(user_sub.stream_id)) # this shows the stream info: "Key('GuestbookNDB', 'default_guestbook', 'Greeting', 'testname')",
+            #TODO: add the subscription key, as we do for adding a subscription: "sub_key": "Key('GuestbookNDB', 'default_guestbook', 'StreamSubscription', 6225984592281600)",
+            jsonOutputDict['sub_info']['unsub']['sub_key'] = repr(user_sub.stream_id)
+            jsonOutputDict['sub_info']['unsub']['streammatch_key'] = repr(user_sub.stream_id)
+            if(user_sub.key.delete()):
+              jsonOutputDict['sub_info']['unsub_matches'].append(repr(user_sub.stream_id))
+            else:
+              jsonOutputDict['sub_info']['unsub_fail'].append(repr(user_sub.stream_id))
+        jsonOutputDict['sub_info']['unsub']['total_matches'] = subReprList
+        #jsonOutputDict['sub_info']['sub_key'] = repr(streamSub.put())
+        #jsonOutputDict['sub_info']['subscription_properites'] = streamSub.to_dict(exclude = ['stream_id','user_id','date','author'])
 
     self.response.write(json.dumps(jsonOutputDict))
     return 
