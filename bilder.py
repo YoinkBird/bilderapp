@@ -96,12 +96,47 @@ class Greeting(ndb.Model):
     #TODO: store image name and comments as well; either requires a new ndb class or could possibly also be handled by blobstore
     # see https://developers.google.com/appengine/docs/python/ndb/properties#structured
 
+    # DOC: on counters: https://developers.google.com/appengine/articles/sharding_counters
     #TODO: implement these mocks
     img_amount = ndb.IntegerProperty()
     views = ndb.IntegerProperty()
 #</class_Stream>
 ###############################################################################
 
+###############################################################################
+#<>
+# NOTE: 'cls' is equ to 'self', bit confusing at first
+# store a stream_id and a user_id
+# goal: track subscriptions for users
+# http://stackoverflow.com/questions/11711077/how-to-structure-movies-database-and-user-choices
+class StreamSubscription(ndb.Model):
+  #stream_id  = ndb.KeyProperty(kind = Greeting, required = True)
+  # keyproperty - like a reference to the object. generate based on 'Greeting' to tie together, i think
+  stream_id  = ndb.KeyProperty(kind = Greeting, required = True)
+  #user_id    = ndb.StringProperty(required = True)
+  subscribed = ndb.BooleanProperty( required = True )
+
+  @classmethod
+  def get_subscribed_streams(cls, user_id):
+    return cls.query(cls.user_id == user_id, cls.subscribed == true).fetch()
+
+#</>
+###############################################################################
+
+###############################################################################
+#< class_UserInfo>
+# create a user model to hold data , store it in the Guestbook/User key
+# user class will store subscribed streams
+class UserInfo(ndb.Model):
+  author = ndb.UserProperty()
+  content = ndb.StringProperty() # TODO: convert to 'streamid'
+  streamid = content              # TODO: I hope this works ; create a stream and then double-check in the console
+  date = ndb.DateTimeProperty(auto_now_add=True)
+
+  img_subscribed = ndb.StringProperty(indexed=False, repeated=True)
+
+#</class_UserInfo>
+###############################################################################
 
 ###############################################################################
 #< class MainPage>
@@ -757,6 +792,23 @@ class CreateStreamService(webapp2.RequestHandler):
     # https://wiki.python.org/moin/HandlingExceptions
       error = "unknown - could not stream.put()"
       self.response.write("bad query, returned:%s" % error)
+
+    ####################################################################
+    # TODO: this is just a test - subscribe user to the stream that is created
+    # NOTE: key can be  '.key' returns either 'ID' or 'Key Name':
+    #   GuestbookNDB: name=default_guestbook > Greeting: name=this_has_a_subscription
+    #   GuestbookNDB: name=default_guestbook > Greeting: id=6650945836417024
+    # test the new streamsubscription class
+    streamSub = StreamSubscription(
+        parent=guestbook_key(guestbook_name),
+        stream_id = stream.key,
+        #user_id   = ''  #TODO
+        subscribed = True,
+        )
+    streamSub.put()
+    #
+    ####################################################################
+
 
     query_params = {'guestbook_name': guestbook_name}
     self.redirect('/manage?' + urllib.urlencode(query_params))
