@@ -115,6 +115,7 @@ class StreamSubscription(ndb.Model):
   stream_id  = ndb.KeyProperty(kind = Greeting, required = True)
   #user_id    = ndb.StringProperty(required = True)
   subscribed = ndb.BooleanProperty( required = True )
+  date = ndb.DateTimeProperty(auto_now_add=True, indexed = False) # date is purely for viewing in datastore :-)
 
   @classmethod
   def get_subscribed_streams(cls, user_id):
@@ -724,14 +725,27 @@ class ImgUpload(webapp2.RequestHandler):
 # CreateStreamService equ create stream
 class CreateStreamService(webapp2.RequestHandler):
   def post(self):
+    # < read values>
+    ######################################################################
     # We set the same parent key on the 'Greeting' to ensure each Greeting
     # is in the same entity group. Queries across the single entity group
     # will be consistent. However, the write rate to a single entity group
     # should be limited to ~1/second.
     guestbook_name = self.request.get('guestbook_name',
                                       DEFAULT_GUESTBOOK_NAME)
-    #NOTE: def guestbook_key: return ndb.Key('GuestbookNDB', DEFAULT_GUESTBOOK_NAME)
-    stream = Greeting(parent=guestbook_key(guestbook_name))
+
+    # set streamid to stream name to avoid issues
+    #NOTE: guestbook_key is set to: ndb.Key('GuestbookNDB', DEFAULT_GUESTBOOK_NAME)
+    streamid = self.request.get('stream_name')
+    if(streamid):
+      stream = Greeting(
+          parent = guestbook_key(guestbook_name),
+          id     = streamid, # override default for legibility
+          )
+    else:
+      stream = Greeting( parent=guestbook_key(guestbook_name),)
+
+    # < create stream>
 
     if users.get_current_user():
         stream.author = users.get_current_user()
