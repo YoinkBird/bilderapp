@@ -384,7 +384,7 @@ class Manage(webapp2.RequestHandler):
         #solved: valueList.append(attrib + ' = ' + str(subDict[attrib]) + ' is ' + type(subDict[attrib]).__name__)
 
       # add the checkbox
-      #valueList.append(html_form_checkbox('stream_unsub',subDict['content']))
+      valueList.append(html_form_checkbox('stream_unsub',subDict['content']))
       # build the row
       greetSubTr += bilder_templates.generateTableRow(valueList)
     # < /subscribed table>
@@ -426,6 +426,7 @@ class Manage(webapp2.RequestHandler):
     contentList.append('<p>Total Streams:%s<p>' % str(len(greetings)))
     contentList.append(form_streams_own)
     contentList.append('<h3>Streams I Subscribe to</h3>')
+    contentList.append('<h4>TODO: currently subscriptions are automatic</h4>')
     contentList.append('<p>Total Streams:%s<p>' % str(len(subsMatchList)))
     contentList.append(form_streams_sub)
     for content in contentList:
