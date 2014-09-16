@@ -114,13 +114,17 @@ class StreamSubscription(ndb.Model):
   # keyproperty - like a reference to the object. generate based on 'Greeting' to tie together, i think
   stream_id  = ndb.KeyProperty(kind = Greeting, required = True)
   #user_id    = ndb.StringProperty(required = True)
-  subscribed = ndb.BooleanProperty( required = True )
+  subscribed = ndb.BooleanProperty( required = True ) # subscription is prereqruisite..
+  user_id    = ndb.StringProperty( required = True )  # keep track of users
   date = ndb.DateTimeProperty(auto_now_add=True, indexed = False) # date is purely for viewing in datastore :-)
 
   @classmethod
   def get_subscribed_streams(cls, user_id):
-    return cls.query(cls.user_id == user_id, cls.subscribed == true).fetch()
+    return cls.query(cls.user_id == user_id, cls.subscribed == True).fetch()
 
+  @classmethod
+  def get_by(cls, user_id, stream_id_key):
+     return cls.query(cls.user_id == user_id, cls.movie == stream_id_key).get()
 #</>
 ###############################################################################
 
@@ -219,6 +223,17 @@ class Manage(webapp2.RequestHandler):
       greetingDict['views'] = str(greeting.views)
       greetingsOwnList.append(greetingDict)
     #</retrieve greetings>
+    # < query subscriptions>
+    subscription_query = StreamSubscription.query(
+        ancestor=guestbook_key(user_name))#.order(-Greeting.date)
+    #TODO: debug this, from http://stackoverflow.com/a/11724844 # subscription_query = StreamSubscription.get_subscribed_streams(user_name)
+    subsMatchList = subscription_query.fetch()
+    # store data from all matches
+    userSubsList = []
+    for sub in subsMatchList:
+      subParamDict = sub.to_dict(exclude=['date'])
+      userSubsList.append(subParamDict)
+    # </query subscriptions>
     greetSubTr = ''
     greetOwnTr = ''
 
@@ -233,22 +248,28 @@ class Manage(webapp2.RequestHandler):
         valueList.append(greetDict[attrib])
       # add the checkbox
       # table 'delete' template
+      #TODO: add insert row function?
       valueList.append(html_form_checkbox('stream_delete',greetDict['content']))
       # build the row
       greetOwnTr += bilder_templates.generateTableRow(valueList)
     # subscribed
     # loop through all greetings
-    for greetDict in greetingsOwnList:
+    for greetDict in userSubsList:
       valueList = [] 
-      attribOrderList = ['content','date','img_amount','views']
-      for attrib in attribOrderList:
+      #attribOrderList = ['content','date','img_amount','views']
+      #for attrib in attribOrderList:
+      for attrib in greetDict:
         valueList.append(greetDict[attrib])
 
       # add the checkbox
-      valueList.append(html_form_checkbox('stream_unsub',greetDict['content']))
+      #valueList.append(html_form_checkbox('stream_unsub',greetDict['content']))
       # build the row
       greetSubTr += bilder_templates.generateTableRow(valueList)
     #greetTable = bilder_templates.get_html_template_table(greetSubTr)
+
+
+
+
 
 
     ## generate table headers
@@ -274,15 +295,16 @@ class Manage(webapp2.RequestHandler):
     form_streams_sub = gen_html_form('delete_stream','post','(X) Unsubscribed Checked Streams',table_streams_sub)
 
 
-
     contentList = []
     #TODO: add form to table to delete selected streams - just have a checkbox with the stream id
     # https://apt.mybalsamiq.com/mockups/1083489.png?key=c6286db5bf27f95012252833d5214a336f17922c
     response = TEMPLATE_NAVIGATION
     #response += greetTable
     contentList.append('<h3>Streams I Own</h3>')
+    contentList.append('<p>Total Streams:%s<p>' % str(len(greetings)))
     contentList.append(form_streams_own)
     contentList.append('<h3>Streams I Subscribe to</h3>')
+    contentList.append('<p>Total Streams:%s<p>' % str(len(subsMatchList)))
     contentList.append(form_streams_sub)
     for content in contentList:
       response += content + '\n'
