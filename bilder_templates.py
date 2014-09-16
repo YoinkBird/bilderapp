@@ -95,7 +95,7 @@ def get_page_template_create_stream():
         <div class="outline">
           <!-- TODO: find the javascript to have clear-on-click grey text -->
           <!-- <label for="textarea">Emails:</label><br/>-->
-          <textarea name="add_subscribers" rows="2" cols="60">test@example.com</textarea>
+          <textarea name="stream_subscribers" rows="2" cols="60">test@example.com</textarea>
           </br/>
         <!--  </div>
         <div class="outline">-->
@@ -109,7 +109,7 @@ def get_page_template_create_stream():
         </div>
         <div class="outline">
           <label for="textarea">URL to Cover Image<br/>(optional)</label><br/>
-          <textarea name="stream_cover_url" rows="2" cols="60">cover img data</textarea>
+          <textarea name="stream_cover_url" rows="2" cols="60"></textarea>
         </div>
         <div><input type="submit" value="Create Stream"></div>
       </form>

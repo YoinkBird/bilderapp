@@ -82,7 +82,9 @@ class Greeting(ndb.Model):
     #streamid = content              # TODOno: created a stream and then double-check in the console - only 'streamid' gets updated for some reason
     streamid = ndb.StringProperty() # TODO: convert to 'streamid'
     date = ndb.DateTimeProperty(auto_now_add=True)
-    coverurl = ndb.StringProperty() # TODO: convert to 'streamid'
+    coverurl = ndb.StringProperty()
+    tags        = ndb.StringProperty(repeated=True)
+    subscribers = ndb.StringProperty(repeated=True)
 
     #TODO: no duplicate streams allowed - find a way to detect and error for collisions 
     # https://developers.google.com/appengine/docs/python/ndb/properties#repeated
@@ -525,17 +527,72 @@ class CreateStreamService(webapp2.RequestHandler):
 
     if users.get_current_user():
         stream.author = users.get_current_user()
+    #else:
+    #  stream.author = 'anonymous'
 
     # TODO: add error checking for the return code
+    # TODO: do not create nameless objects
+    # TODO: do not create duplicate objects
+    # here come the hacks :-(
     # set attributes, some are defaults
     stream.content = self.request.get('content')
     stream.content = self.request.get('stream_name')
     stream.streamid = self.request.get('stream_name')
-    coverurl = self.request.get('cover_url')
+    coverurl = self.request.get('stream_cover_url')
     if(not coverurl):
       defaulturl = 'http://google.com/images'
       coverurl = defaulturl
     stream.coverurl = coverurl
+
+    # repeated properties
+    # TODO: see 'validator' under https://developers.google.com/appengine/docs/python/ndb/properties#options
+    # validator: Optional function to validate and possibly coerce the value.
+
+
+    # hacks - 
+    # < stream_tags -> tags>
+    param    = 'stream_tags'
+    property = 'tags'
+    requestGetValue = self.request.get(param)
+    # uniqify list
+    tagListStr = requestGetValue
+    tagListTmp = tagListStr.split(' ')
+    tmpSet     = set(tagListTmp)
+    tagListTmp = list(tmpSet)
+    value = tagListTmp
+    #stream.populate(property = value) # AttributeError: type object 'Greeting' has no attribute 'property'
+    #stream.populate(Greeting._properties[property] = value) # SyntaxError: keyword can't be an expression
+    setattr(stream,property,value) # http://stackoverflow.com/q/18682517
+    # </stream_tags -> tags>
+
+    # < stream_subscribers -> subscribers>
+    param = 'stream_subscribers'
+    requestGetValue = self.request.get(param)
+    # uniqify list
+    listStr   = requestGetValue
+    tmpList  = listStr.split(' ')
+    tmpSet   = set(tmpList)
+    tmpList  = list(tmpSet)
+    value = tmpList
+    property = param
+    stream.populate(subscribers = value)
+    # </stream_subscribers -> subscribers>
+
+    
+    # map request data to model data
+    paramDict = {
+        #'stream_tags':stream.tags,
+        'stream_tags':'tags'
+        }
+
+    # this doesn't work
+    for param in paramDict:
+      continue
+      value = self.request.get(param)
+      if(value):
+        #paramDict[param] = param
+        property = paramDict[param]
+        stream.populate(property=value)
     # doc: https://developers.google.com/appengine/docs/python/ndb/modelclass#introduction
     # The return value from put() is a Key, which can be used to retrieve the same entity later:
     # p = Person(name='Arthur Dent', age=42)
