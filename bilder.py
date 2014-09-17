@@ -148,9 +148,8 @@ class StreamSubscription(ndb.Model):
   #stream_id  = ndb.KeyProperty(kind = Greeting, required = True)
   # keyproperty - like a reference to the object. generate based on 'Greeting' to tie together, i think
   stream_id  = ndb.KeyProperty(kind = Greeting, required = True)
-  #user_id    = ndb.StringProperty(required = True)
+  user_id    = ndb.UserProperty( required = True )  # keep track of users
   subscribed = ndb.BooleanProperty( required = True ) # subscription is prereqruisite..
-  user_id    = ndb.StringProperty( required = True )  # keep track of users
   date = ndb.DateTimeProperty(auto_now_add=True, indexed = False) # date is purely for viewing in datastore :-)
 
   @classmethod
@@ -223,7 +222,9 @@ class Manage(webapp2.RequestHandler):
         url_linktext = 'Login'
     
     # look up guestbook
-    guestbook_name = self.request.get('guestbook_name', DEFAULT_GUESTBOOK_NAME)
+    #TODO: phasing in 'user_name' instead of 'guestbook_name'; don't want to have to do a global find/replace and then test any ensuing messes
+    user_name = self.request.get('guestbook_name', DEFAULT_GUESTBOOK_NAME)
+    user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
     #< retrieve greetings>
     # TODO: this part is good for 'manage'
     # Ancestor Queries, as shown here, are strongly consistent with the High Replication Datastore. 
@@ -232,7 +233,7 @@ class Manage(webapp2.RequestHandler):
     #  that 'Greeting' that had just been written would not show up in a query.
 
     greetings_query = Greeting.query(
-        ancestor=guestbook_key(guestbook_name)).order(-Greeting.date)
+        ancestor=guestbook_key(user_name)).order(-Greeting.date)
     greetings = greetings_query.fetch(10)
 
     #TODO: stop calling it a greeting:
@@ -804,10 +805,18 @@ class CreateStreamService(webapp2.RequestHandler):
 
     # < create stream>
 
+    # mock user: # src: http://stackoverflow.com/a/6230083
+    import os
+    os.environ['USER_EMAIL'] = 'poland.barker@swedishcomedy.com'
+    os.environ['USER_ID'] = 'pbarker'
+    #os.environ['AUTH_DOMAIN'] = 'testbed' # To avoid  /google/appengine/api/users.py:115 - AssertionError: assert _auth_domain
+    #os.environ['USER_IS_ADMIN'] = '1'     #  for an administrative user
+    #user_name = 'poland_barker'
     if users.get_current_user():
         stream.author = users.get_current_user()
     #else:
     #  stream.author = 'anonymous'
+    user_name = stream.author
 
     # TODO: add error checking for the return code
     # TODO: do not create nameless objects
@@ -873,6 +882,7 @@ class CreateStreamService(webapp2.RequestHandler):
     streamSub = StreamSubscription(
         parent=guestbook_key(guestbook_name),
         stream_id = stream.key,
+        user_id = user_name,
         #user_id   = ''  #TODO
         subscribed = True,
         )
