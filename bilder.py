@@ -8,6 +8,28 @@ from google.appengine.api import urlfetch
 
 import webapp2
 
+########## 
+'''
+DOCUMENTATION
+
+view:
+http://localhost:8080/viewallstreams
+
+admin:
+http://localhost:8008/datastore?kind=Greeting
+
+test:
+python tests/aziz_simple_test.py
+
+information about the env
+https://webapp-improved.appspot.com/guide/request.html#registry
+
+
+some good clarification on keys
+http://stackoverflow.com/questions/16020686/understanding-ndb-key-class-vs-keyproperty
+'''
+########## 
+
 import bilder_templates
 def genNav():
   #TODO: match link targets with the mockups, tie-in to 'application = webapp2.WSGIApplication'
@@ -64,10 +86,23 @@ DEFAULT_GUESTBOOK_NAME = 'default_guestbook'
 # However, the write rate should be limited to ~1/second.
 
 # TODO: rename
+# NOTE: ancestor/parent entity need not actually exist, just needs to be able to create a key
+#   that is why clicking on 'Guestbook: name=default_guestbook' in the 'datastore viewer' is not found
+#   same for GuestbookNDB - neither are instantiated
+#   src: https://developers.google.com/appengine/docs/python/datastore/entities#Python_Ancestor_paths
 # user_key
 def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
     """Constructs a Datastore key for a Guestbook entity with guestbook_name."""
     return ndb.Key('GuestbookNDB', guestbook_name)
+    # syntax: class Key(kind1, id1) # https://developers.google.com/appengine/docs/python/ndb/keyclass
+    # kind: usually the name of the class # https://developers.google.com/appengine/docs/python/datastore/entities#Python_Kinds_and_identifiers
+    # id: numberic or string
+    # Key: unique identifer associated with each entity in Datastore
+    #  The key consists of the following components:
+    #  * The namespace of the entity ( allows for multitenancy )
+    #  * The kind of the entity ( categorizes it for Datastore queries )
+    #  * An identifier for the individual entity, either 'key name string' or 'integer numeric ID'
+    #  * An optional ancestor path locating the entity within the Datastore hierarchy
 
 ###############################################################################
 #< class_Stream>
