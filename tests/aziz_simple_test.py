@@ -29,7 +29,8 @@ globals = {
           }
  
 horizline = ('#' * 32)
-jsontest = 0
+passedList = []
+failedList = []
 def send_request(conn, url, req, **kwargs):
     #jsontest = 0  # dataprocess fail, form2json pass
     jsontest = 1  # dataprocess pass, form2json fail
@@ -64,8 +65,10 @@ def send_request(conn, url, req, **kwargs):
     print "json load:"
     try:
       jsonresp = json.loads(response)
+      passedList.append(url)
     except:
       jsonresp = 'testrunner_json.loads_fail'
+      failedList.append(url)
     print '  %s' % jsonresp
     print "easy to read:"
     print '  %s' % json.dumps(jsonresp, indent=4)
@@ -302,3 +305,11 @@ if __name__ == '__main__':
       send_request(conn,serviceUrl,request)
     print(horizline)
     print('\n')
+  #</testrun loop>
+
+  ################################################################ 
+  # print results
+  print("passed")
+  print(passedList)
+  print("failed")
+  print(failedList)
