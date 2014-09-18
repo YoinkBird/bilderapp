@@ -29,9 +29,16 @@ globals = {
           }
  
 horizline = ('#' * 32)
-
-def send_request(conn, url, req):
-    jsontest = 0
+jsontest = 0
+def send_request(conn, url, req, **kwargs):
+    #jsontest = 0  # dataprocess fail, form2json pass
+    jsontest = 1  # dataprocess pass, form2json fail
+    request_headers = globals["headers"]
+    if(kwargs):
+      if('headers' in kwargs):
+        request_headers = kwargs['headers']
+        if(request_headers['content-type'] == 'application/json'):
+          jsontest = 1
     params = ''
     #TODO: run with json first; if fail then run with x-www-form and/or others
     if(jsontest == 1):
@@ -43,9 +50,9 @@ def send_request(conn, url, req):
       print "x-www-form-urlencoded request params:"
       params = urllib.urlencode(req)
       print '%s' % params
-      globals["headers"] = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+      request_headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
 
-    conn.request("POST", url, params, globals["headers"])
+    conn.request("POST", url, params, request_headers)
     resp = conn.getresponse()
     print "status | reason"
     print "%s | %s" % (resp.status, resp.reason)
@@ -55,7 +62,7 @@ def send_request(conn, url, req):
     try:
       jsonresp = json.loads(response)
     except:
-      jsonresp = 'fail'
+      jsonresp = 'testrunner_json.loads_fail'
     print '  %s' % jsonresp
     print "easy to read:"
     print '  %s' % json.dumps(jsonresp, indent=4)
@@ -68,6 +75,27 @@ def place_create_request(conn):
     res = send_request(conn, "/api/user/create", req)
     return res
  
+######################################################
+#TODO: maybe just do this as json... then I can just have a json file to specify tests
+# would need to read json intelligently, i.e. add a 'defaulttest' and allow inherit etc
+def get_test_dict_pattern(**kwargs):
+  testPatternDict = {} # this is returned
+  reqDict = {}
+  service = ''
+  if(kwargs):
+    if('request' in kwargs):
+      reqDict = kwargs['request']
+    if('service' in kwargs):
+      service = kwargs['service']
+    params = ['headers']
+    for param in params:
+      if(param in kwargs):
+        testPatternDict[param] = kwargs[param]
+  testPatternDict['request'] = reqDict
+  testPatternDict['service'] = service
+  return testPatternDict
+######################################################
+  
 # many more functions like the above
 
 if __name__ == '__main__':
@@ -190,6 +218,11 @@ if __name__ == '__main__':
     serviceList.append(tmpConfigDict)
 
 
+    ## stream subscription
+    ## tests-to-be-written:
+    ## * sub streamA, unsub streamB, verify no change
+    ## * sub streamA, unsub streamA, verify that id is same
+
     ## sub
     requestDict['stream_name'] = 'testname'
     requestDict['action'] = 'subscribe'
@@ -203,14 +236,41 @@ if __name__ == '__main__':
         'service' : 'streamsubscribe',
         'request' : copy.copy(requestDict),
     }
+    streamdonothing = copy.deepcopy(streamunsubscribe)
+    del(streamdonothing['request']['action'])
+
+    serviceList.append(streamdonothing)
     serviceList.append(streamsubscribe)
     serviceList.append(streamunsubscribe)
+
+  jsondemotest = 1 # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
+  if(jsondemotest):
+    del serviceList
+    serviceList = []
+    ## jsonreturntest - the demo appspot project
+    #service = 'jsonreturntest', TODO
+    ## service 'dataprocess' - receives json data from form2json
+    serviceList.append(get_test_dict_pattern( 
+      #service = 'jsonreturntest',
+      service = 'dataprocess',
+      request = {"username" : "charlie", "field2": "default2", "field1": "default1", "content": "default3", "action": "dataprocess",},
+      )
+    )
+    serviceList.append(get_test_dict_pattern( 
+      service = 'form2json', #umm... FORM 2json -this needs to be a x-www-form
+      request = {"username" : "charlie", "field2": "default2", "field1": "default1", "content": "default3", "action": "dataprocess",},
+      # "username": "charlie"}
+      headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
+      #'request' = {"field2": "default2", "field1": "default1", "content": "default3", "action": "dataprocess",}# "username": "charlie"}
+      )
+    )
+    print("")
 
 
   # </override list of services to be tested>
   jsondemotest = 0 # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
   if(jsondemotest): # test the 'jsondemo'
-    serviceList = ['jsonreturntest','form2json']# ,'dataprocess'] #'formtest'] #TODO: would be good to test form submission
+    serviceList = ['jsonreturntest','form2json','dataprocess']# ,'dataprocess'] #'formtest'] #TODO: would be good to test form submission
     #{"greeting": "sorry charlie!", "field2": "default2", "field1": "default1", "action": "dataprocess", "content": "default3", "username": "charlie"}
     # 'username: charlie should cause a return data of 'message:sorry charlie!'
     request = {"field2": "default2", "field1": "default1", "content": "default3", "action": "dataprocess",}# "username": "charlie"}
@@ -227,11 +287,21 @@ if __name__ == '__main__':
   for testConfigDict in serviceList:
     service = testConfigDict['service']
     request = testConfigDict['request']
+    if(0):
+      #if(not service == 'streamsubscribe'):
+      if(not service == 'form2json'):
+        continue
+      if(0 and not request['action'] == 'unsubscribe'):
+        continue
     if not request:
       request = defaultrequest
     print(horizline)
     serviceUrl = '/' + service
     print("testing: %s:%s/%s\n\n" % (conn.host,conn.port,service))
-    send_request(conn,serviceUrl,request)
+    if 'headers' in testConfigDict:
+      testheaders = testConfigDict["headers"]
+      send_request(conn,serviceUrl,request, headers=testConfigDict["headers"])
+    else:
+      send_request(conn,serviceUrl,request)
     print(horizline)
     print('\n')
