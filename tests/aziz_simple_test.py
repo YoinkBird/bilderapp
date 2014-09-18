@@ -1,3 +1,4 @@
+# TODO: clean up the remnant datastructures like 'testConfigDict'
 import json
 import httplib
 import urllib
@@ -219,16 +220,15 @@ if __name__ == '__main__':
     ## sub
     requestDict['stream_name'] = 'testname'
     requestDict['action'] = 'subscribe'
+   #     'headers' : {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
     streamsubscribe = {
         'service' : 'streamsubscribe',
-        'headers' : {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
         'request' : copy.copy(requestDict),
     }
     # unsub
     requestDict['action'] = 'unsubscribe'
     streamunsubscribe = {
         'service' : 'streamsubscribe',
-        'headers' : {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
         'request' : copy.copy(requestDict),
     }
     streamdonothing = copy.deepcopy(streamunsubscribe)

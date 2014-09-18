@@ -891,12 +891,22 @@ class SubscribeStreamService(webapp2.RequestHandler):
 
     # TODO: rename
     guestbook_name = self.request.get('guestbook_name', DEFAULT_GUESTBOOK_NAME)
-    user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
-    streamid = self.request.get('stream_name')
+    user_name      = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
+    streamid       = self.request.get('stream_name')
+
 
     # sub or rm?
-    subscriptionAction = self.request.get('action',)
+    subscriptionAction = self.request.get('action')
     
+    # do the json correction application/json
+    jsonDict           = json.loads(self.request.body)
+    if(not 'user_name' in jsonDict):
+      jsonDict['user_name'] = DEFAULT_GUESTBOOK_NAME
+    #guestbook_name     = jsonDict['guestbook_name']
+    user_name          = jsonDict['user_name']
+    streamid           = jsonDict['stream_name']
+    if('action' in jsonDict):
+      subscriptionAction = jsonDict['action']
 
     # TEMP - look up string by id - TODO: handle with GenericQueryService
     queryExpression = streamid
