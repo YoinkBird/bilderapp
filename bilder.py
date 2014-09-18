@@ -115,7 +115,7 @@ class Greeting(ndb.Model):
     author = ndb.UserProperty()
     content = ndb.StringProperty() # TODO: convert to 'streamid'
     #streamid = content              # TODOno: created a stream and then double-check in the console - only 'streamid' gets updated for some reason
-    streamid = ndb.StringProperty(required=True) # TODO: convert to 'streamid'
+    streamid = ndb.StringProperty(required=True) # TODO:  make this match StreamSubscription, which uses 'stream_id' with an undescore
     date = ndb.DateTimeProperty(auto_now_add=True)
     coverurl = ndb.StringProperty()
     tags        = ndb.StringProperty(repeated=True)
@@ -144,13 +144,15 @@ class Greeting(ndb.Model):
 # store a stream_id and a user_id
 # goal: track subscriptions for users
 # http://stackoverflow.com/questions/11711077/how-to-structure-movies-database-and-user-choices
+# TODO: implement custom to_dict to avoid the 'blah is not JSON serializable' errors
 class StreamSubscription(ndb.Model):
   #stream_id  = ndb.KeyProperty(kind = Greeting, required = True)
   # keyproperty - like a reference to the object. generate based on 'Greeting' to tie together, i think
   stream_id  = ndb.KeyProperty(kind = Greeting, required = True)
   user_id    = ndb.UserProperty( required = True )  # keep track of users
   subscribed = ndb.BooleanProperty( required = True ) # subscription is prereqruisite..
-  date = ndb.DateTimeProperty(auto_now_add=True, indexed = False) # date is purely for viewing in datastore :-)
+  date       = ndb.DateTimeProperty(auto_now_add=True, indexed = False) # date is purely for viewing in datastore :-)
+  streamname = ndb.StringProperty( required = False, indexed = False)   # debug only
 
   @classmethod
   def get_subscribed_streams(cls, user_id):
@@ -242,6 +244,7 @@ class Manage(webapp2.RequestHandler):
         user_name = users.get_current_user()
     #user_name = 'pbarker'
     subscription_query = StreamSubscription.get_subscribed_streams(user_name)
+    # reset username - remaining examples need DEFAULT_GUESTBOOK_NAME
     user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
     # < debug query subscriptions>
 
@@ -303,6 +306,7 @@ class Manage(webapp2.RequestHandler):
       #userSubsList.append(subParamDict) # this is the StreamSubscription object, no point in that now is there, love?
       # WARNING: DO NOT LET GO OF THIS! vvvv
       #userSubsList.append(subParamDict['stream_id'].get()) # that's more like it, I hope
+      #TODO: sub.stream_id.get().to_dict()
       userSubsList.append(subParamDict['stream_id'].get().to_dict()) # that's more like it, I hope
       # WARNING: DO NOT LET GO OF THIS! ^^^^
       ### vvvvvvvvv new stuff vvvvvvvvvvvvvvvvvvvv
