@@ -170,8 +170,6 @@ if __name__ == '__main__':
   request['search_query'] = 'nerf|unicorn|grass'
   #< define request data>
 
-  # < override list of services to be tested>
-  # TODO: vvvv this is temporary vvvv
   if(1):
         
     serviceList = ['streamsubscribe'] # only working on one service right now
@@ -241,11 +239,12 @@ if __name__ == '__main__':
     serviceList.append(streamsubscribe)
     serviceList.append(streamunsubscribe)
 
-  jsondemotest = 1 # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
-  if(jsondemotest):
+  # < override list of services to be tested>
+  # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
+  if(globals['port'] == '9080'):
     del serviceList
     serviceList = []
-    ## jsonreturntest - the demo appspot project
+    ## TODO: add this as well to be complete: # jsonreturntest - the demo appspot project
     #service = 'jsonreturntest', TODO
     ## service 'dataprocess' - receives json data from form2json
     serviceList.append(get_test_dict_pattern( 
@@ -265,16 +264,7 @@ if __name__ == '__main__':
       )
     )
     print("")
-
-
   # </override list of services to be tested>
-  jsondemotest = 0 # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
-  if(jsondemotest): # test the 'jsondemo'
-    serviceList = ['jsonreturntest','form2json','dataprocess']# ,'dataprocess'] #'formtest'] #TODO: would be good to test form submission
-    #{"greeting": "sorry charlie!", "field2": "default2", "field1": "default1", "action": "dataprocess", "content": "default3", "username": "charlie"}
-    # 'username: charlie should cause a return data of 'message:sorry charlie!'
-    request = {"field2": "default2", "field1": "default1", "content": "default3", "action": "dataprocess",}# "username": "charlie"}
-    #request['debug'] = 1 - turns on html
 
   # RUN tests
   serviceRunList = testConfigDict.keys()
