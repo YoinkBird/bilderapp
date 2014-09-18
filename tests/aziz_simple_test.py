@@ -37,8 +37,10 @@ def send_request(conn, url, req, **kwargs):
     if(kwargs):
       if('headers' in kwargs):
         request_headers = kwargs['headers']
-        if(request_headers['content-type'] == 'application/json'):
+        if(request_headers['Content-type'] == 'application/json'):
           jsontest = 1
+        if(request_headers['Content-type'] == 'application/x-www-form-urlencoded'):
+          jsontest = 0
     params = ''
     #TODO: run with json first; if fail then run with x-www-form and/or others
     if(jsontest == 1):
@@ -50,8 +52,9 @@ def send_request(conn, url, req, **kwargs):
       print "x-www-form-urlencoded request params:"
       params = urllib.urlencode(req)
       print '%s' % params
-      request_headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
+      request_headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/html"}
 
+    print("headers: " + str(request_headers))
     conn.request("POST", url, params, request_headers)
     resp = conn.getresponse()
     print "status | reason"
@@ -80,19 +83,11 @@ def place_create_request(conn):
 # would need to read json intelligently, i.e. add a 'defaulttest' and allow inherit etc
 def get_test_dict_pattern(**kwargs):
   testPatternDict = {} # this is returned
-  reqDict = {}
-  service = ''
   if(kwargs):
-    if('request' in kwargs):
-      reqDict = kwargs['request']
-    if('service' in kwargs):
-      service = kwargs['service']
-    params = ['headers']
+    params = ['request', 'service', 'headers']
     for param in params:
       if(param in kwargs):
         testPatternDict[param] = kwargs[param]
-  testPatternDict['request'] = reqDict
-  testPatternDict['service'] = service
   return testPatternDict
 ######################################################
   
@@ -259,6 +254,8 @@ if __name__ == '__main__':
     serviceList.append(get_test_dict_pattern( 
       service = 'form2json', #umm... FORM 2json -this needs to be a x-www-form
       request = {"username" : "charlie", "field2": "default2", "field1": "default1", "content": "default3", "action": "dataprocess",},
+      #request = {"username" : "charlie", "field2": "default2", "field1": "default1", "content": "default3", "action": "dataprocess","debug":"1"},
+      
       # "username": "charlie"}
       headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
       #'request' = {"field2": "default2", "field1": "default1", "content": "default3", "action": "dataprocess",}# "username": "charlie"}
