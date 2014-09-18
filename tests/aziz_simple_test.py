@@ -203,15 +203,12 @@ if __name__ == '__main__':
     serviceList.append(tmpConfigDict)
 
     ## genericquery
-    tmpConfigDict = copy.copy(defaulttest)
-    tmpConfigDict['service'] = 'genericquery'
-    # define requests
-    tmpRequestDict['redirect'] = 0 # HACK for the query page
-    tmpRequestDict['search_query'] = 'nerf|unicorn|grass'
-    # add requests
-    tmpConfigDict['request'] = copy.copy(tmpRequestDict)
-    # add list
-    serviceList.append(tmpConfigDict)
+    serviceList.append(get_test_dict_pattern(
+      service = 'genericquery',
+      headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
+      request =  {"redirect": 0, "search_query": "nerf|unicorn|grass"},
+      )
+    )
 
 
     ## stream subscription
@@ -224,12 +221,14 @@ if __name__ == '__main__':
     requestDict['action'] = 'subscribe'
     streamsubscribe = {
         'service' : 'streamsubscribe',
+        'headers' : {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
         'request' : copy.copy(requestDict),
     }
     # unsub
     requestDict['action'] = 'unsubscribe'
     streamunsubscribe = {
         'service' : 'streamsubscribe',
+        'headers' : {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
         'request' : copy.copy(requestDict),
     }
     streamdonothing = copy.deepcopy(streamunsubscribe)
