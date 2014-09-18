@@ -1,6 +1,7 @@
 import json
 import cgi
 import urllib
+import urlparse
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
@@ -518,6 +519,16 @@ class ViewSingleStream(webapp2.RequestHandler):
 
     response += bilder_templates.generateContainerDivBlue(imageGalleryStr)
     response += bilder_templates.generateContainerDivBlue(bilder_templates.get_page_template_upload_file(action))
+    subscriptionUrlJunk = '/%s?%s=%s' % ('form2json' , 'stream_name', stream_name)
+    subscriptionUrlJunk = '/%s?' % ('form2json')
+    #response += bilder_templates.generateContainerDivBlue(bilder_templates.get_html_template_stream_subscribe(subscriptionUrlJunk))
+    response += bilder_templates.generateContainerDivBlue(
+        bilder_templates.get_html_template_stream_subscribe(
+          subscriptionUrlJunk,
+          stream_name,
+
+          )
+        )
     # boilerplate
     response = bilder_templates.generateContainerDiv('<h1>Handler: ViewSingleStream</h1>' + response,'#C0C0C0')
     response = bilder_templates.get_html_body_template(response)
@@ -905,8 +916,8 @@ class SubscribeStreamService(webapp2.RequestHandler):
     #guestbook_name     = jsonDict['guestbook_name']
     user_name          = jsonDict['user_name']
     streamid           = jsonDict['stream_name']
-    if('action' in jsonDict):
-      subscriptionAction = jsonDict['action']
+    if('submanage' in jsonDict):
+      subscriptionAction = jsonDict['submanage']
 
     # TEMP - look up string by id - TODO: handle with GenericQueryService
     queryExpression = streamid
@@ -1245,6 +1256,81 @@ class JsonTest(webapp2.RequestHandler):
 #</class_JsonTest>
 ###############################################################################
 
+###############################################################################
+#< class_form2json>
+# input x-www-form
+# output: ????
+# convert form data to json, send to service specified in form, 
+class form2json(webapp2.RequestHandler):
+  def post(self):
+    debug = 0
+    debug = self.request.get('debug',0) # for now, simply check if true is defined
+    if(debug >= 1):
+      self.response.write(html_generateContainerDiv('<h1>Handler: JsonTest</h1>' ,'#C0C0C0'))
+      self.response.write(htmlParen('> self.request.body'))
+      self.response.write(self.request.body)
+  
+    # dict of lists: https://docs.python.org/2/library/urlparse.html#urlparse.parse_qs
+    jsondata  = json.dumps(urlparse.parse_qs(self.request.body))
+    # dict of key-value:  http://stackoverflow.com/a/8239167
+    jsondata  = json.dumps(dict(urlparse.parse_qsl(self.request.body)))
+    #debug printout
+    if(debug >= 1):    
+      self.response.write(htmlParen('> json.dumps(self.request.body)'))
+      self.response.write(htmlParen(jsondata))
+    
+    jsonRetStr = ''
+    formDict = json.loads(jsondata)
+    # make the request
+    url = self.request.host_url
+    # default action is 'dataprocess'
+    if('action' in formDict):
+      if(debug >= 1):    
+        self.response.write(htmlParen('TODO: add one redirect per service that needs a form then read something like the request path to determine the action'))
+        self.response.write(htmlParen('found action in formDict'))
+      # URL_method:
+      # url += '/%s?jsonstr=' % formDict['action']
+      #json_method:
+      url = self.request.host_url + '/' + formDict['action']
+    else:
+      #TODO: figure out a default
+      url += '/%s?jsonstr=' % 'dataprocess'
+    # src: https://developers.google.com/appengine/docs/python/appidentity/#Python_Asserting_identity_to_Google_APIs
+    #TODO: validate response
+    result = urlfetch.fetch(
+        url,
+        payload = jsondata,
+        method=urlfetch.POST,
+        headers = {'Content-Type' : "application/json"},
+        )
+    # store return string
+    jsonRetStr = 'the_if_else_broke_in_form2json'
+    if(result.status_code == 200):
+      #jsonRetStr = json.loads(result.content)
+      jsonRetStr = result.content
+    else:
+      jsonRetStr = ("Call failed. Status code %s. Body %s" % (result.status_code, result.content))
+      # Note on error-handling from above google page: # raise Exception(jsonRetStr)
+      jsonRetStr = json.dumps({'error':jsonRetStr})
+
+    #self.response.write(html_generateContainerDivBlue(htmlParen(jsonRetStr)))
+    if(debug >= 1):    
+      responseStr = htmlParen('response from dataprocess')
+      responseStr += htmlParen('raw output:' + htmlParen(jsonRetStr))
+    jsonDict = {}# = json.loads(jsonRetStr)
+    response = jsonRetStr
+    if(debug >= 1):    
+      if('greeting' in jsonDict):
+        responseStr += htmlParen('message:' + jsonDict['greeting'])
+      response = html_generateContainerDivBlue(responseStr)
+    self.response.write(response)
+    
+    # TODO: not sure what to do with this now
+    #self.redirect('/formtest')
+#</class_form2json>
+###############################################################################
+
+
 #TODO: use 'genNav' to autogenerate links, redirection OR somehow retrieve this list of tuples 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -1258,6 +1344,8 @@ application = webapp2.WSGIApplication([
     ('/img_upload', ImgUpload),
     ('/jsonreturntest',JsonTest),
     ('/streamsubscribe',SubscribeStreamService),
+    ('/managestreamsub',SubscribeStreamService),
+    ('/form2json',form2json),
 ], debug=True)
 
 ###############################################

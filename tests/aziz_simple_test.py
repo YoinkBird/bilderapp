@@ -219,20 +219,20 @@ if __name__ == '__main__':
 
     ## sub
     requestDict['stream_name'] = 'testname'
-    requestDict['action'] = 'subscribe'
+    requestDict['submanage'] = 'subscribe'
    #     'headers' : {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
     streamsubscribe = {
         'service' : 'streamsubscribe',
         'request' : copy.copy(requestDict),
     }
     # unsub
-    requestDict['action'] = 'unsubscribe'
+    requestDict['subscribe'] = 'unsubscribe'
     streamunsubscribe = {
         'service' : 'streamsubscribe',
         'request' : copy.copy(requestDict),
     }
     streamdonothing = copy.deepcopy(streamunsubscribe)
-    del(streamdonothing['request']['action'])
+    del(streamdonothing['request']['submanage'])
 
     serviceList.append(streamdonothing)
     serviceList.append(streamsubscribe)

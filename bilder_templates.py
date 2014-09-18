@@ -96,6 +96,29 @@ def get_page_template_upload_file(action):
   template = gen_html_form(action , 'post', 'Upload File', template)
   return template
 #</get_page_template_upload_file>
+
+################################################################
+#< get_html_template_stream_subscribe>
+def get_html_template_stream_subscribe(action, stream_name):
+  # service: 
+  # need to pass {"action": "unsubscribe", "stream_name": "testname"}
+  template = """\
+  <div>
+    <!--
+    <textarea name="file_comments" rows="1" cols="60">Comments</textarea><br/>
+    <input type="file" name="img"/><br/>
+    -->
+    <div><input name="action" value="managestreamsub" type='hidden'></div>
+    <div><input name="stream_name" value="%s" type='hidden'></div>
+    <div><input name="submanage" value="subscribe" type='hidden'></div>
+  </div> 
+  """
+  template2 = template % (stream_name)
+  template = gen_html_form(action , 'post', 'Subscribe', template2)
+  return template
+#</get_html_template_stream_subscribe>
+################################################################
+
 def get_page_template_create_stream():
   # TODO: automate div generation, i.e. <div %s><label>%s</label> and name=%s
   # TODO: move labels beneath boxes
