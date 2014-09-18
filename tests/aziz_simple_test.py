@@ -56,6 +56,8 @@ def send_request(conn, url, req):
     except:
       jsonresp = 'fail'
     print '  %s' % jsonresp
+    print "easy to read:"
+    print '  %s' % json.dumps(jsonresp, indent=4)
     return jsonresp
  
 def place_create_request(conn):
@@ -103,26 +105,50 @@ if __name__ == '__main__':
   conn = httplib.HTTPConnection(globals["server"],globals["port"])
   # TODO: define dict of services and tests in order to specify test-specific defaults
   # e.g.: testConfigDict =  {'jsonreturntest':{'contenttype':'json'}, 'genericquery':{'contenttype':'urlencode'},}
+  # vvv uncomment as the services are added vvv
   serviceList = [
-      'create',
-      'sign',
-      'manage',
-      'viewsinglestream',
+      #'create',
+      #'sign',
+      #'manage',
+      #'viewsinglestream',
       'viewallstreams',
-      'searchallstreams',
-      #'genericquery',
-      'img_upload',
-      #'jsonreturntest',
+      #'searchallstreams',
+      'genericquery',
+      #'img_upload',
+      'jsonreturntest',
+      'streamsubscribe'
       ]
-  serviceList = ['jsonreturntest','genericquery']
-  serviceList.append( 'viewallstreams')
+  #< define request data>
+  request = {"userId": globals["userId"]}
+  request['redirect'] = 0 # HACK for the query page
+  request['search_query'] = 'nerf|unicorn|grass'
+  #< define request data>
+
+  # < override list of services to be tested>
+  # TODO: vvvv this is temporary vvvv
+  if(1):
+    serviceList = ['streamsubscribe'] # only working on one service right now
+    requestDict = {}
+    # ideally everything is in 'jsonstr'
+    #request['jsonstr'] = json.dumps(requestDict)
+    #  something may needs this in the future
+    #request['jsonstr'] = urllib.quote_plus({'streamid':'testname'})
+    #request['jsonstr'] = json.dumps(requestDict)
+    requestDict['stream_name'] = 'testname'
+    request = requestDict
+
+  # </override list of services to be tested>
+  jsondemotest = 0 # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
+  if(jsondemotest): # test the 'jsondemo'
+    serviceList = ['jsonreturntest','form2json']# ,'dataprocess'] #'formtest'] #TODO: would be good to test form submission
+    #{"greeting": "sorry charlie!", "field2": "default2", "field1": "default1", "action": "dataprocess", "content": "default3", "username": "charlie"}
+    # 'username: charlie should cause a return data of 'message:sorry charlie!'
+    request = {"field2": "default2", "field1": "default1", "content": "default3", "action": "dataprocess",}# "username": "charlie"}
+    #request['debug'] = 1 - turns on html
   for service in serviceList:
     print(horizline)
-    print("testing: %s \n\n" % service)
     serviceUrl = '/' + service
-    request = {"userId": globals["userId"]}
-    request['redirect'] = 0 # HACK for the query page
-    request['search_query'] = 'nerf|unicorn'
+    print("testing: %s:%s/%s\n\n" % (conn.host,conn.port,service))
     send_request(conn,serviceUrl,request)
     print(horizline)
     print('\n')
