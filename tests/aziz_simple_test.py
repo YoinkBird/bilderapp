@@ -33,6 +33,7 @@ horizline = ('#' * 32)
 def send_request(conn, url, req):
     jsontest = 0
     params = ''
+    #TODO: run with json first; if fail then run with x-www-form and/or others
     if(jsontest == 1):
       print "json request params:"
       params = json.dumps(req)
@@ -101,10 +102,29 @@ if __name__ == '__main__':
   # </external>
   # </define server>
 
-  
+  # define connection
   conn = httplib.HTTPConnection(globals["server"],globals["port"])
   # TODO: define dict of services and tests in order to specify test-specific defaults
-  # e.g.: testConfigDict =  {'jsonreturntest':{'contenttype':'json'}, 'genericquery':{'contenttype':'urlencode'},}
+  # TODO: make that a list of dicts
+  testConfigDict =  {
+      'jsonreturntest':{'contenttype':'json'}, 
+      'genericquery':{'contenttype':'urlencode'},
+      'viewallstreams':{'contenttype':'urlencode'},
+      'genericquery':{'contenttype':'urlencode'},
+      #'searchallstreams':{'contenttype':'urlencode'},
+      #'create':{'contenttype':'urlencode'},
+      #'sign':{'contenttype':'urlencode'},
+      #'manage':{'contenttype':'urlencode'},
+      #'viewsinglestream':{'contenttype':'urlencode'},
+      #'img_upload':{'contenttype':'urlencode'},
+      'streamsubscribe': {
+        'request': {
+          'action': 'unsubscribe',
+          'stream_name': 'testname'}
+        }
+      } 
+  # easier
+  serviceList = testConfigDict.keys()
   # vvv uncomment as the services are added vvv
   serviceList = [
       #'create',
@@ -127,6 +147,7 @@ if __name__ == '__main__':
   # < override list of services to be tested>
   # TODO: vvvv this is temporary vvvv
   if(1):
+        
     serviceList = ['streamsubscribe'] # only working on one service right now
     requestDict = {}
     # ideally everything is in 'jsonstr'
@@ -137,6 +158,55 @@ if __name__ == '__main__':
     requestDict['stream_name'] = 'testname'
     request = requestDict
 
+  if(1):
+    ## default test
+    import copy
+    tmpRequestDict = {}
+    serviceList = [] #clear out for this example
+    defaulttest = {
+        'service' : '/',
+        'request' : {"userId": globals["userId"]}
+    }
+    ## populate serviceList with defaults
+    ## jsonreturntest
+    tmpConfigDict = copy.copy(defaulttest)
+    tmpConfigDict['service'] = 'jsonreturntest'
+    serviceList.append(tmpConfigDict)
+
+    ## viewallstreams
+    tmpConfigDict = copy.copy(defaulttest)
+    tmpConfigDict['service'] = 'viewallstreams'
+    serviceList.append(tmpConfigDict)
+
+    ## genericquery
+    tmpConfigDict = copy.copy(defaulttest)
+    tmpConfigDict['service'] = 'genericquery'
+    # define requests
+    tmpRequestDict['redirect'] = 0 # HACK for the query page
+    tmpRequestDict['search_query'] = 'nerf|unicorn|grass'
+    # add requests
+    tmpConfigDict['request'] = copy.copy(tmpRequestDict)
+    # add list
+    serviceList.append(tmpConfigDict)
+
+
+    ## sub
+    requestDict['stream_name'] = 'testname'
+    requestDict['action'] = 'subscribe'
+    streamsubscribe = {
+        'service' : 'streamsubscribe',
+        'request' : copy.copy(requestDict),
+    }
+    # unsub
+    requestDict['action'] = 'unsubscribe'
+    streamunsubscribe = {
+        'service' : 'streamsubscribe',
+        'request' : copy.copy(requestDict),
+    }
+    serviceList.append(streamsubscribe)
+    serviceList.append(streamunsubscribe)
+
+
   # </override list of services to be tested>
   jsondemotest = 0 # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
   if(jsondemotest): # test the 'jsondemo'
@@ -145,7 +215,20 @@ if __name__ == '__main__':
     # 'username: charlie should cause a return data of 'message:sorry charlie!'
     request = {"field2": "default2", "field1": "default1", "content": "default3", "action": "dataprocess",}# "username": "charlie"}
     #request['debug'] = 1 - turns on html
-  for service in serviceList:
+
+  # RUN tests
+  serviceRunList = testConfigDict.keys()
+  serviceRunList = ['genericquery']
+  import copy
+  defaultrequest = copy.copy(request)
+  # TODO: make hash where key is testname, hash is same as above with 'serviceList.append'
+  # then the 'serviceRunList = testConfigDict.keys() could be used to disable a test on the fly
+  #runOnlyTests = ('service',) # create a set, blah blah
+  for testConfigDict in serviceList:
+    service = testConfigDict['service']
+    request = testConfigDict['request']
+    if not request:
+      request = defaultrequest
     print(horizline)
     serviceUrl = '/' + service
     print("testing: %s:%s/%s\n\n" % (conn.host,conn.port,service))
