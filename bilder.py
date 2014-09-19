@@ -310,52 +310,6 @@ class Manage(webapp2.RequestHandler):
       #TODO: sub.stream_id.get().to_dict()
       userSubsList.append(subParamDict['stream_id'].get().to_dict()) # that's more like it, I hope
       # WARNING: DO NOT LET GO OF THIS! ^^^^
-      ### vvvvvvvvv new stuff vvvvvvvvvvvvvvvvvvvv
-      if(0):
-        for attrib in subParamDict:
-          self.response.write(attrib + ' = ' + str(subParamDict[attrib]) + ' is ' + type(subParamDict[attrib]).__name__)
-          self.response.write('<br/>\n')
-          if(attrib == 'stream_id'):
-            #self.response.write('streamid = %s' % Greeting.get_by_id())
-            if('user_id' in subParamDict):
-              self.response.write('ATTEMPT 1 <br/>\n')
-              tmpUserId = subParamDict['user_id']
-              # step1, now store in tmpStream
-              #self.response.write('streamid = %s' % StreamSubscription.get_by(tmpUserId,subParamDict['stream_id']))
-              self.response.write('object:%s | type: %s<br/>\n' % (tmpUserId,type(tmpUserId).__name__))
-              # step2
-              self.response.write('ATTEMPT 2 <br/>\n')
-              tmpStream = StreamSubscription.get_by(tmpUserId,subParamDict['stream_id'])
-              self.response.write('streamid = %s' % tmpStream)
-              self.response.write('<br/>\n')
-              self.response.write('  type = %s' % type(tmpStream).__name__)
-              self.response.write('<br/>\n')
-              # step3
-              if(1):
-                self.response.write('ATTEMPT 3 <br/>\n')
-                objectkey = subParamDict['stream_id'].get() ### <--- winnrar! 
-                self.response.write('<br/>\n')
-                self.response.write('#' * 64)
-                self.response.write('<br/>\n')
-                self.response.write('object:<br/>%s | type: %s<br/>\n' % (objectkey,type(objectkey).__name__))
-                self.response.write('#' * 64)
-                #self.response.write(objectkey)
-                self.response.write('<br/>\n')
-                self.response.write(str(subParamDict['stream_id']))
-                self.response.write('<br/>\n')
-                self.response.write('parent:<br/>\n')
-                self.response.write(subParamDict['stream_id'].parent())
-                tmpStream = Greeting.get_by_id(str(subParamDict['stream_id']))
-                self.response.write('streamid = %s' % tmpStream)
-                self.response.write('<br/>\n')
-                self.response.write('  type = %s' % type(tmpStream).__name__)
-                self.response.write('<br/>\n')
-          self.response.write('<br/>\n')
-          self.response.write('<br/>\n')
-          self.response.write('<br/>\n')
-        #self.response.write('subparamdict:<br/>\n:' + htmlPprintJson(json.dumps(subParamDict)))
-        #StreamSubscription.get_subscribed_streams(user_name)
-      ### ^^^^^^^^^ new stuff ^^^^^^^^^^^^^^^^^^^^
     # </query subscriptions>
     greetSubTr = ''
     greetOwnTr = ''
@@ -1115,23 +1069,6 @@ class CreateStreamService(webapp2.RequestHandler):
     # https://wiki.python.org/moin/HandlingExceptions
       error = "unknown - could not stream.put()"
       self.response.write("bad query, returned:%s" % error)
-
-    ####################################################################
-    # TODO: this is just a test - subscribe user to the stream that is created
-    # NOTE: key can be  '.key' returns either 'ID' or 'Key Name':
-    #   GuestbookNDB: name=default_guestbook > Greeting: name=this_has_a_subscription
-    #   GuestbookNDB: name=default_guestbook > Greeting: id=6650945836417024
-    # test the new streamsubscription class
-    streamSub = StreamSubscription(
-        parent=guestbook_key(guestbook_name),
-        stream_id = stream.key,
-        user_id = user_name,
-        #user_id   = ''  #TODO
-        subscribed = True,
-        )
-    streamSub.put()
-    #
-    ####################################################################
 
 
     query_params = {'guestbook_name': guestbook_name}
