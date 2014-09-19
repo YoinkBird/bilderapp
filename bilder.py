@@ -28,8 +28,24 @@ https://webapp-improved.appspot.com/guide/request.html#registry
 
 some good clarification on keys
 http://stackoverflow.com/questions/16020686/understanding-ndb-key-class-vs-keyproperty
+
+
+Routing
+http://blog.notdot.net/2010/01/Webapps-on-App-Engine-part-1-Routing
+
+webapp2
+http://docs.webob.org/en/latest/do-it-yourself.html#routing
+https://webapp-improved.appspot.com/guide/app.html#router
+
+https://webapp-improved.appspot.com/guide/handlers.html
+
+
 '''
 ########## 
+'''
+TODO: CLEANUP ORDER
+* viewsinglestream must be converted to service - many things rely on the viewcount being increased and 'viewsinglestream' is called from a few places
+'''
 
 import bilder_templates
 def genNav():
@@ -109,6 +125,7 @@ def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
 #< class_Stream>
 # class Stream aka Greeting
 # doc on internal properties: https://developers.google.com/appengine/docs/python/ndb/properties
+# TODO: implement custom to_dict to avoid the 'blah is not JSON serializable' errors
 class Greeting(ndb.Model):
 #class Stream(ndb.Model):
     #TODO: implement all the internal methods
@@ -169,6 +186,8 @@ class StreamSubscription(ndb.Model):
 #< class_UserInfo>
 # create a user model to hold data , store it in the Guestbook/User key
 # user class will store subscribed streams
+# TODO: implement this as the 'Guestbook' and it will inheirit streams, subscriptions
+#       because these classes claim 'Guestbook' as acnestor
 class UserInfo(ndb.Model):
   author = ndb.UserProperty()
   content = ndb.StringProperty() # TODO: convert to 'streamid'
@@ -348,11 +367,8 @@ class Manage(webapp2.RequestHandler):
       greetSubTr += bilder_templates.generateTableRow(valueList)
     # < /subscribed table>
 
-
-
-
-
-
+    ####################################
+    # Table Generation
     ## generate table headers
     # table: own streams
     headerOwn = bilder_templates.generateTableRow(['Name','Last New Picture','Number of Pictures','Delete'])
@@ -432,18 +448,23 @@ def getStreamImg(stream_id): # TODO: page range
 #</def getStreamImg>
 ###############################################################################
 
+
 ###############################################################################
 #< class ViewSingleStream>
+#TODO: abstract the query into a separate 'post' service in order to satisfy this requirement:
 # * view a stream (which takes a stream id and a page range and returns a list of URLs to images and a page range)
 # doc: different kinds of request handlers
 # https://developers.google.com/appengine/docs/python/tools/webapp/requesthandlers
 #TODO: 'more pictures' https://piazza.com/class/hz1r799mk0ah?cid=56
+#TODO: todo: viewsinglestream does not display image immediately, waits until page reload -> convert to service-based 
 class ViewSingleStream(webapp2.RequestHandler):
+#TODO: split 'get(self):' into subroutines so that 'get(post)' can play along as well
   def get(self):
     response = '' # store request response
     response += TEMPLATE_NAVIGATION
     # get stream name
     stream_name = self.request.get('streamid','stream_unspecified')
+    # http://localhost:8080/viewsinglestream?streamid=kjljljkl
     query_params = urllib.urlencode({'streamid': stream_name})
     action = '/img_upload?' + query_params 
 
@@ -701,6 +722,7 @@ class GenericQueryService(webapp2.RequestHandler):
 ###############################################################################
 #< class_SearchAllStreamsService>
 # * search streams (which takes a query string and returns a list of streams (titles and cover image urls) that contain matching text
+#TODO: all of thisvvvv
   '''
    balsamiq1:
    * return to self on form submit
@@ -709,6 +731,7 @@ class GenericQueryService(webapp2.RequestHandler):
    * click on cover img -> incr numviews 
       Note: this is in common with the normal 'view a stream' - reuse somehow!
   '''
+#TODO: return only five results!!!!
 
 class SearchAllStreamsService(webapp2.RequestHandler):
   def get(self):
@@ -840,6 +863,8 @@ def htmlParen(string):
 ###############################################################################
 # pass in stream by name
 # create new 'subscripton' for user, stream
+# json in: {"action": "unsubscribe", "stream_name": stream_name}
+# json in: {"action": "subscribe",   "stream_name": stream_name}
 # step1: copy in 'CreateStreamService' and verify functionality
 # step2: remove unneeded chunks
 # caveat: some are needed to make original function work but are not needed here
@@ -1006,8 +1031,10 @@ class CreateStreamService(webapp2.RequestHandler):
     import os
     os.environ['USER_EMAIL'] = 'poland.barker@swedishcomedy.com'
     os.environ['USER_ID'] = 'pbarker'
+    #   < more mock user values>
     #os.environ['AUTH_DOMAIN'] = 'testbed' # To avoid  /google/appengine/api/users.py:115 - AssertionError: assert _auth_domain
     #os.environ['USER_IS_ADMIN'] = '1'     #  for an administrative user
+    #   </more mock user values>
     #user_name = 'poland_barker'
     if users.get_current_user():
         stream.author = users.get_current_user()
