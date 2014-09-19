@@ -599,14 +599,38 @@ class GenericQueryService(webapp2.RequestHandler):
   def post(self):
     querydebug = 0 # 1: add bogus results 2: disable redirect, print some junk
     response = ''
+    ## store values
     # HACK: for automation, a script can pass in 'redirect=0' to prevent the redirect-induced error : '302|Found'
-    redirect = self.request.get('redirect',1) # for now, simply check if true is defined
+    redirect = ''
+    user_name = ''
+    search_query = ''
+    # load in values
+    #self.response.write(self.response.__dict__)
+    #return
+    #if(self.response.headers["Content-Type"] == 'application/json'):
+    try: #( json.loads(self.request.body)):
+      jsonDict = json.loads(self.request.body)
+      if(not 'user_name' in jsonDict):
+        jsonDict['user_name'] = DEFAULT_GUESTBOOK_NAME
+      user_name          = jsonDict['user_name']
+      if('search_query' in jsonDict):
+        search_query = jsonDict['search_query']
+      # for debug
+      if('redirect' in jsonDict):
+        redirect = jsonDict['redirect']
+      else:
+        redirect = 1
+    except: # x-www-form
+      redirect = self.request.get('redirect',1) # for now, simply check if true is defined
 
-    # TODO: ?look up all users?
-    user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
-    #NOTE: default_value is only good if the form element was not submitted; even an empty box counts as data
-    #queryExpression = self.request.get('search_query', default_value='*') # TODO: use the * for returning all results
-    queryExpression = self.request.get('search_query') # for now, simply check if search_query is defined
+      # TODO: ?look up all users?
+      user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
+      #guestbook_name     = jsonDict['guestbook_name']
+      #NOTE: default_value is only good if the form element was not submitted; even an empty box counts as data
+      #queryExpression = self.request.get('search_query', default_value='*') # TODO: use the * for returning all results
+      search_query = self.request.get('search_query') # for now, simply check if search_query is defined
+    # done
+    queryExpression = search_query
     # look up streams
     #TODO: add a search
     #   implement several modes
