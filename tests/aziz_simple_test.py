@@ -192,26 +192,31 @@ if __name__ == '__main__':
         'service' : '/',
         'request' : {"userId": globals["userId"]}
     }
-    ## populate serviceList with defaults
+    ## populate serviceList with testconfigs
     ## jsonreturntest
-    tmpConfigDict = copy.copy(defaulttest)
-    tmpConfigDict['service'] = 'jsonreturntest'
-    serviceList.append(tmpConfigDict)
+    serviceList.append(get_test_dict_pattern(
+      service = 'jsonreturntest',
+      request = {"userId": globals["userId"]},
+      )
+    )
 
     ## viewallstreams
-    tmpConfigDict = copy.copy(defaulttest)
-    tmpConfigDict['service'] = 'viewallstreams'
-    serviceList.append(tmpConfigDict)
+    serviceList.append(get_test_dict_pattern(
+      service = 'viewallstreams',
+      request = {"userId": globals["userId"]},
+      )
+    )
 
     ## genericquery
     serviceList.append(get_test_dict_pattern(
       service = 'genericquery',
-      headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
+     # headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
       request =  {"redirect": 0, "search_query": "nerf|unicorn|grass"},
       )
     )
 
 
+  if(1): #TMP to convert genericquery
     ## stream subscription
     ## tests-to-be-written:
     ## * sub streamA, unsub streamB, verify no change
@@ -298,7 +303,8 @@ if __name__ == '__main__':
 
   ################################################################ 
   # print results
-  print("passed")
+  print("vvvvv passed vvvvvv")
   print(passedList)
-  print("failed")
+  print('#' * 64)
+  print("vvvvv failed vvvvv")
   print(failedList)
