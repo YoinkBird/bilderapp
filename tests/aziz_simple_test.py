@@ -207,6 +207,14 @@ if __name__ == '__main__':
       )
     )
 
+    ## viewsinglestream
+    # TODO: use created stream and use data from 'viewallstreams'
+    testConfigDict['viewsinglestream'] = get_test_dict_pattern(
+      service = 'viewsinglestream',
+      request = {'stream_id':'grass','streamid':'nerfherder'},
+      )
+    serviceList.append(testConfigDict['viewsinglestream'])
+
     ## genericquery
     serviceList.append(get_test_dict_pattern(
       service = 'genericquery',
