@@ -1009,6 +1009,7 @@ class SubscribeStreamService(webapp2.RequestHandler):
         jsonOutputDict['sub_info']['sub']['total_matches'] = []
         streamSub = StreamSubscription(
             parent     = guestbook_key(guestbook_name),
+            id         = "subscription_%s_streamid_%s" % (user_name, streamid),
             stream_id  = stream.key, # key -  Special property to store the Model key. 
 
             user_id    = user_name,
