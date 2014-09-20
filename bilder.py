@@ -457,8 +457,50 @@ def getStreamImg(stream_id): # TODO: page range
 # https://developers.google.com/appengine/docs/python/tools/webapp/requesthandlers
 #TODO: 'more pictures' https://piazza.com/class/hz1r799mk0ah?cid=56
 #TODO: todo: viewsinglestream does not display image immediately, waits until page reload -> convert to service-based 
+#TODO TODAY 20140919
+#TODO: make 'get self' call 'post self' to get the images to display
+#TODO: range - "pagination" through DB of images, i.e return <range_lower>:<range_upper> images at a time
 class ViewSingleStream(webapp2.RequestHandler):
 #TODO: split 'get(self):' into subroutines so that 'get(post)' can play along as well
+  def post(self):
+    postVarDict = {}
+    # < read in options>
+    try: # json input
+      postVarDict = json.loads(self.request.body)
+      if(not 'user_name' in postVarDict):
+        postVarDict['user_name'] = DEFAULT_GUESTBOOK_NAME
+    except: # x-www-form
+      #redirect = self.request.get('redirect',1) # for now, simply check if true is defined
+      for param in ['streamid', 'range',]:
+        postVarDict[param] = self.request.get(param, 'unspecified')
+    #</read in options>
+    # set internal vars
+    user_name = postVarDict['user_name']
+    stream_id = postVarDict['stream_id']
+
+    jsonStr = ''
+    if(1):
+      # by key:
+      # streamInst = ndb.Key(Greeting,stream_id, parent = guestbook_key()).get()       #nope
+      # by query:
+      streams_query = Greeting.query( Greeting.streamid == stream_id)
+      # by query, with ancestor grouping (useful for user):
+      #streams_query = Greeting.query(ancestor=guestbook_key(DEFAULT_GUESTBOOK_NAME))# Greeting.content == stream_id)
+      # get results of query
+      streamsList = streams_query.fetch()
+
+      #key.get('grass')
+      imgList = []
+      for streamInstance in streamsList:
+        # see if there are any urls attached; if so then display them
+        if streamInstance.imgurls :
+          imgList = streamInstance.imgurls
+      # </image gallery>
+      #TODO: range - "pagination" through DB of images, i.e return <range_lower>:<range_upper> images at a time
+      range = len(imgList)
+      jsonStr = json.dumps({'imgurls':imgList,'range':range})
+      self.response.write(jsonStr)
+
   def get(self):
     response = '' # store request response
     response += TEMPLATE_NAVIGATION
