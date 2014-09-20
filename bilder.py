@@ -463,39 +463,6 @@ class Manage(webapp2.RequestHandler):
 
 
 ###############################################################################
-# return all user streams instead of having to loop each time
-def getStreamImg(stream_id): # TODO: page range
-  # start with single stream
-  # TODO: fail if stream not present - should only get here if one has been created already
-  # have to retrieve stream from DB
-  # make a query #TODO: figure out how to just get the one and only entry without needing an iterator
-  streams_query = Greeting.query( Greeting.content == stream_id)
-  # get results of query
-  streams = streams_query.fetch()
-  if(0): # DEBUG
-    response += 'streams_query:<br/>'+ repr(streams_query)
-    response +=  '<br/>'
-    response += 'streams: <br/>' + repr(streams)
-    response +=  '<br/>'
-  # loop through aaaaalllll of them (there should only be one)
-  range = 0
-  imgList = []
-  for streamInstance in streams:
-    # see if there are any urls attached; if so then display them
-    if streamInstance.imgurls :
-      imgList = streamInstance.imgurls
-  # </image gallery>
-
-  #TODO: return as json
-  range = len(imgList)
-  jsonStr = json.dumps({'imgurls':imgList,'range':range})
-  return jsonStr
-  return imgList
-#</def getStreamImg>
-###############################################################################
-
-
-###############################################################################
 #< class ViewSingleStream>
 #TODO: abstract the query into a separate 'post' service in order to satisfy this requirement:
 # * view a stream (which takes a stream id and a page range and returns a list of URLs to images and a page range)
