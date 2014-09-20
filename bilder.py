@@ -199,6 +199,11 @@ class Greeting(ndb.Model):
     #TODO: implement these mocks
     img_amount = ndb.IntegerProperty(default = 0)
     views      = ndb.IntegerProperty(default = 0)
+    # ValueError: DateTimeProperty None could use auto_now and be repeated, but there would be no point.
+    # Set property to current date/time when entity is created and whenever it is updated
+    viewtimes  = ndb.DateTimeProperty(repeated = True)#, auto_now = True)
+
+
 #</class_Stream>
 ###############################################################################
 
@@ -504,6 +509,9 @@ class ViewSingleStream(webapp2.RequestHandler):
     jsonStr = json.dumps({'imgurls':imgList,'range':range})
     # update view-count
     streamInst.views += 1
+    import datetime
+    streamInst.viewtimes.append(datetime.datetime.now())
+    # loop through list and look for entries older than one hour
     streamInst.put()
 
     self.response.write(jsonStr)
