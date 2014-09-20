@@ -480,26 +480,18 @@ class ViewSingleStream(webapp2.RequestHandler):
 
     jsonStr = ''
     if(1):
-      # by key:
-      # streamInst = ndb.Key(Greeting,stream_id, parent = guestbook_key()).get()       #nope
-      # by query:
-      streams_query = Greeting.query( Greeting.streamid == stream_id)
-      # by query, with ancestor grouping (useful for user):
-      #streams_query = Greeting.query(ancestor=guestbook_key(DEFAULT_GUESTBOOK_NAME))# Greeting.content == stream_id)
-      # get results of query
-      streamsList = streams_query.fetch()
+      # by key: uses 'parent' to help avoid incorrect results
+      streamInst = ndb.Key(Greeting,stream_id, parent = guestbook_key()).get()
+      #self.response.write(str(streamInst)) # for debug, examine the 'key=Key(...)'
+      imgList = [] 
+      # see if there are any urls attached; if so then display them
+      if streamInst.imgurls :
+        imgList = streamInst.imgurls
 
-      #key.get('grass')
-      imgList = []
-      for streamInstance in streamsList:
-        # see if there are any urls attached; if so then display them
-        if streamInstance.imgurls :
-          imgList = streamInstance.imgurls
-      # </image gallery>
-      #TODO: range - "pagination" through DB of images, i.e return <range_lower>:<range_upper> images at a time
-      range = len(imgList)
-      jsonStr = json.dumps({'imgurls':imgList,'range':range})
-      self.response.write(jsonStr)
+    #TODO: range - "pagination" through DB of images, i.e return <range_lower>:<range_upper> images at a time
+    range = len(imgList)
+    jsonStr = json.dumps({'imgurls':imgList,'range':range})
+    self.response.write(jsonStr)
 
   def get(self):
     response = '' # store request response
