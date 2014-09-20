@@ -992,7 +992,7 @@ class SubscribeStreamService(webapp2.RequestHandler):
 
     streamReprList = []
     for stream in queriedStreams:
-      streamReprList.append(stream.to_dict(exclude = ['date','author']))
+      streamReprList.append(stream.to_dict(exclude = ['date','author','viewtimes']))
     jsonOutputDict['stream_info']['total_streams'] = streamReprList
     #VIM: jump to empty line: shift^] shift^[
 
