@@ -197,8 +197,8 @@ class Greeting(ndb.Model):
 
     # DOC: on counters: https://developers.google.com/appengine/articles/sharding_counters
     #TODO: implement these mocks
-    img_amount = ndb.IntegerProperty()
-    views = ndb.IntegerProperty()
+    img_amount = ndb.IntegerProperty(default = 0)
+    views      = ndb.IntegerProperty(default = 0)
 #</class_Stream>
 ###############################################################################
 
@@ -491,19 +491,21 @@ class ViewSingleStream(webapp2.RequestHandler):
     user_name = postVarDict['user_name']
     stream_id = postVarDict['stream_id']
 
-    jsonStr = ''
-    if(1):
-      # by key: uses 'parent' to help avoid incorrect results
-      streamInst = ndb.Key(Greeting,stream_id, parent = guestbook_key()).get()
-      #self.response.write(str(streamInst)) # for debug, examine the 'key=Key(...)'
-      imgList = [] 
-      # see if there are any urls attached; if so then display them
-      if streamInst.imgurls :
-        imgList = streamInst.imgurls
-
+    # by key: uses 'parent' to help avoid incorrect results
+    streamInst = ndb.Key(Greeting,stream_id, parent = guestbook_key()).get()
+    #self.response.write(str(streamInst)) # for debug, examine the 'key=Key(...)'
+    imgList = [] 
+    # see if there are any urls attached; if so then display them
+    if streamInst.imgurls:
+      imgList = streamInst.imgurls
+    
     #TODO: range - "pagination" through DB of images, i.e return <range_lower>:<range_upper> images at a time
     range = len(imgList)
     jsonStr = json.dumps({'imgurls':imgList,'range':range})
+    # update view-count
+    streamInst.views += 1
+    streamInst.put()
+
     self.response.write(jsonStr)
 
   def get(self):
