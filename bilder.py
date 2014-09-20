@@ -548,30 +548,11 @@ class ViewSingleStream(webapp2.RequestHandler):
     query_params = urllib.urlencode({'streamid': stream_name})
     action = '/img_upload?' + query_params 
 
-    # < quick json POST test>
-    imgJson = ''
-    if(1):
-      # TODO: implement 'getStreamImg' this way
-      from google.appengine.api import urlfetch
-      #result = urlfetch.fetch(url + urllib.urlencode(query_params),method=urlfetch.POST)
-      result = urlfetch.fetch(
-          #'http://localhost:8080/jsonreturntest',
-          'http://localhost:8080/viewsinglestream',
-          method=urlfetch.POST,
-          payload = json.dumps({'stream_id':stream_name}),
-          headers = {'Content-Type' : "application/json"},
-          )
-      jsonStr = ''
-      if(result.status_code == 200):
-        imgJson = result.content
-        jsonStr = 'Sample json string that service \'view single stream\' could use:<br/>\n'
-        #jsonStr += json.loads(result.content)
-        jsonStr += result.content
-    # </quick json POST test>
 
     # < image gallery>
     #< REFACTOR_20140919>
-    #imgJson = sendJson(self, jsondata={'stream_id':stream_name}, service_name = 'viewsinglestream')
+    imgJson = sendJson(self, jsondata={'stream_id':stream_name}, service_name = 'viewsinglestream')
+    #imgJson = sendJson(self, jsondata=json.dumps({'stream_id':stream_name}), service_name = 'viewsinglestream')
 
     imgDict = json.loads(imgJson)
     #</REFACTOR_20140919>
