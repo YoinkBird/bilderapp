@@ -84,11 +84,12 @@ def place_create_request(conn):
  
 ######################################################
 #TODO: maybe just do this as json... then I can just have a json file to specify tests
+# TODO: set defaults (e.g. user) otherwise this function doesn't have a purpose
 # would need to read json intelligently, i.e. add a 'defaulttest' and allow inherit etc
 def get_test_dict_pattern(**kwargs):
   testPatternDict = {} # this is returned
   if(kwargs):
-    params = ['request', 'service', 'headers']
+    params = ['request', 'service', 'headers','repeat']
     for param in params:
       if(param in kwargs):
         testPatternDict[param] = kwargs[param]
@@ -212,8 +213,18 @@ if __name__ == '__main__':
     testConfigDict['viewsinglestream'] = get_test_dict_pattern(
       service = 'viewsinglestream',
       request = {'stream_id':'grass','streamid':'nerfherder'},
+      #repeat  = 15,
       )
     serviceList.append(testConfigDict['viewsinglestream'])
+
+    ## cron_summarygen
+    testConfigDict['cron_summarygen'] = get_test_dict_pattern(
+      service = 'cron_summarygen',
+      #request = {'stream_id':'grass','streamid':'nerfherder'},
+      #repeat  = 15,
+      )
+    serviceList.append(testConfigDict['cron_summarygen'])
+
 
     ## genericquery
     serviceList.append(get_test_dict_pattern(
@@ -239,9 +250,10 @@ if __name__ == '__main__':
         'request' : copy.copy(requestDict),
     }
     # unsub
-    requestDict['subscribe'] = 'unsubscribe'
+    requestDict['submanage'] = 'unsubscribe'
     streamunsubscribe = {
         'service' : 'streamsubscribe',
+        'testname': 'streamunsubscribe',
         'request' : copy.copy(requestDict),
     }
     streamdonothing = copy.deepcopy(streamunsubscribe)
@@ -287,26 +299,29 @@ if __name__ == '__main__':
   # then the 'serviceRunList = testConfigDict.keys() could be used to disable a test on the fly
   #runOnlyTests = ('service',) # create a set, blah blah
   for testConfigDict in serviceList:
+    # set vars
     service = testConfigDict['service']
-    request = testConfigDict['request']
-    if(0):
-      #if(not service == 'streamsubscribe'):
-      if(not service == 'form2json'):
-        continue
-      if(0 and not request['action'] == 'unsubscribe'):
-        continue
+    if 'request' in testConfigDict:
+      request = testConfigDict['request']
     if not request:
       request = defaultrequest
+    # run test <loop> times
+    loop = 1
+    if 'repeat' in testConfigDict:
+      loop = testConfigDict['repeat']
+    # print info
     print(horizline)
     serviceUrl = '/' + service
-    print("testing: %s:%s/%s\n\n" % (conn.host,conn.port,service))
-    if 'headers' in testConfigDict:
-      testheaders = testConfigDict["headers"]
-      send_request(conn,serviceUrl,request, headers=testConfigDict["headers"])
-    else:
-      send_request(conn,serviceUrl,request)
-    print(horizline)
-    print('\n')
+    print("testing: %s:%s/%s\n" % (conn.host,conn.port,service))
+    for counter in range(loop):
+      print("-I-: loop: %s/%s\n" % (counter,loop))
+      if 'headers' in testConfigDict:
+        testheaders = testConfigDict["headers"]
+        send_request(conn,serviceUrl,request, headers=testConfigDict["headers"])
+      else:
+        send_request(conn,serviceUrl,request)
+      print(horizline)
+      print('\n')
   #</testrun loop>
 
   ################################################################ 
