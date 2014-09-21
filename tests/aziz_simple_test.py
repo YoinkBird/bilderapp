@@ -330,13 +330,17 @@ if __name__ == '__main__':
   ## image upload test
   if(1):
     #serviceList = [] # clear out 
-    testConfigDict['img_upload_formtest'] = get_test_dict_pattern(
+    testConfigDict['img_upload_form'] = get_test_dict_pattern(
       testname = 'img_upload_form',
       service = 'img_upload',
       request = {'streamid':'grass','file_name':'http://www.clipartbest.com/cliparts/MTL/jg7/MTLjg7aTa.png'},
       headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
     )
-    serviceList.append(testConfigDict['img_upload_formtest'])
+    serviceList.append(testConfigDict['img_upload_form'])
+    testConfigDict['img_upload_json'] = copy.deepcopy(testConfigDict['img_upload_form'])
+    testConfigDict['img_upload_json']['testname'] = 'img_upload_json'
+    del(testConfigDict['img_upload_json']['headers'])  #remove x-www-form override
+    serviceList.append(testConfigDict['img_upload_json'])
 
 
   # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
