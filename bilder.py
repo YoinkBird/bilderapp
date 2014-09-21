@@ -1463,6 +1463,7 @@ class CronHandler(webapp2.RequestHandler):
     self.post()
 
   def post(self):
+    # get streams, remove views older than one hour
     jsonDictUnique = self.getStreams()
     jsonStr = json.dumps(jsonDictUnique)
     self.response.write(jsonStr)
@@ -1492,6 +1493,10 @@ class CronHandler(webapp2.RequestHandler):
       #jsonRetDict[streamInst.streamid]['times_updated'] = streamInst.viewtimes
       jsonRetDict[streamInst.streamid]['times_updated_amount'] = streamInst.views
       streamInst.put()
+
+    # calculate trending
+    trends_calculate(self,queriedStreams)
+
     return jsonRetDict
 
   ################################################################
