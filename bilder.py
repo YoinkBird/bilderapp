@@ -1391,35 +1391,12 @@ class CronHandler(webapp2.RequestHandler):
 #      self.response.write(htmlParen('> self.request.body'))
 #      self.response.write(self.request.body)
   def get(self):
-    #self.post()
     self.response.write('you should not be here, Dave')
     self.post()
 
   def post(self):
-    debug = 0
-    
     jsonDictUnique = self.getStreams()
-    if(0):
-      # URL_method:
-      # jsonDict = json.loads(self.request.get('jsonstr'))
-      # json_method:
-      jsonDict = json.loads(self.request.body)
-
-      # generate greeting
-      if('username' in jsonDict):
-        jsonDict['greeting'] = 'sorry %s!' % jsonDict['username']
-      jsonStr = json.dumps(jsonDict)
-
     jsonStr = json.dumps(jsonDictUnique)
-
-    if(debug >= 1):
-      self.response.write(bilder_templates.generateContainerDiv('<h1>Handler: CronHandler</h1>' ,'#C0C0C0'))
-      self.response.write('<html><body>You wrote:<pre>')
-      self.response.write(cgi.escape(self.request.get('content')))
-      self.response.write(self.request.body)
-      self.response.write('</pre></body></html>')
-    #self.response.write(jsonStr)
-    #self.response.write(cgi.escape(self.request.get('jsonstr')))
     self.response.write(jsonStr)
 
   #TODO: consolidate into the query services...
@@ -1434,8 +1411,8 @@ class CronHandler(webapp2.RequestHandler):
 
     
     # DEBUG: add fake view times
-    testDuration = 10
-    maxTimeDelta = testDuration / 3
+    maxTimeDelta = 3
+    testDuration = maxTimeDelta * 3  #make sure old views are generated, i.e. older than the time delta
     #self.response.write(('generating views 1/s for %s seconds') % (testDuration))
     viewtimeList = self.genTimeListForTestingOnly(testDuration)
     for streamInst in queriedStreams:
