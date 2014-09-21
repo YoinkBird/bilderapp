@@ -89,6 +89,7 @@ def place_create_request(conn):
 def get_test_dict_pattern(**kwargs):
   testPatternDict = {} # this is returned
   if(kwargs):
+    testPatternDict = kwargs
     params = ['request', 'service', 'headers','repeat']
     for param in params:
       if(param in kwargs):
@@ -325,6 +326,8 @@ if __name__ == '__main__':
     print(horizline)
     serviceUrl = '/' + service
     print("testing: %s:%s/%s\n" % (conn.host,conn.port,service))
+    if('testname' in testConfigDict):
+      print("testname: %s" % testConfigDict['testname'])
     for counter in range(loop):
       print("-I-: loop: %s/%s\n" % (counter,loop))
       if 'headers' in testConfigDict:
