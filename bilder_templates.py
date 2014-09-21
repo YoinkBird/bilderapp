@@ -1,3 +1,18 @@
+################################################################
+# < def_functionTemplate>
+#def functionTemplate:
+# </def_functionTemplate>
+################################################################
+
+################################################################
+# < class_classTemplate>
+#class classTemplate(webapp2.RequestHandler):
+#    def post(self):
+#      # kwargs
+#      jsonStr = sendJson(self, jsondata={}, service_name = 'trending')
+# </class_classTemplate>
+################################################################
+
 
 #< def generateContainerDiv>
 #TODO: add kwargs and a 'header' option
@@ -166,3 +181,24 @@ def get_page_template_create_stream():
   </html>
   """
   return PAGE_TEMPLATE_CREATE_STREAM
+
+################################################################
+#< def html_generate_body_template>
+# TODO: kwargs, make title optional, etc
+def html_generate_body_template(titleText,bodyHtml):
+  html = \
+    '''
+    <html>
+      <head>
+        <title>%s</title>
+      </head>
+      <body>
+        %s
+      </body>
+    </html>
+    '''
+  htmlOutPut = (html % (titleText,bodyHtml))
+  return htmlOutPut
+#</def html_generate_body_template>
+################################################################
+
