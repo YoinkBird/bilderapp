@@ -273,6 +273,7 @@ if __name__ == '__main__':
     serviceList.append(testConfigDict['trending'])
     ## managenotifications - test whether top3 are returned. eventually email as well
     testConfigDict['managenotifications'] = get_test_dict_pattern(
+      testname = 'managenotifications_digest_5',
       service = 'managenotifications',
       request = {'emailrate':'5'},
     )
@@ -280,6 +281,48 @@ if __name__ == '__main__':
 
 
   # < override list of services to be tested>
+  # cron test: create views, then change '1'->'0' to prune
+  if(0):
+    if(1): #TMP: , remove all others while enabling viewsinglestream POST service
+      del serviceList
+      serviceList = []
+      testConfigDict['viewsinglestream']['repeat'] = 15
+      serviceList.append(testConfigDict['viewsinglestream'])
+   #  serviceList.append(testConfigDict['cron_summarygen'])
+    else:
+      del serviceList
+      serviceList = []
+      serviceList.append(testConfigDict['cron_summarygen'])
+
+  ## email test
+  if(1):
+    #serviceList = []
+    # add a different dude
+    testConfigDict['managenotifications_mailtime_altuser'] = get_test_dict_pattern(
+      testname = 'managenotifications_mailtime_altuser',
+      service = 'managenotifications',
+      request = {'emailrate':'10','user_name':'johndoe'},
+    )
+    # mail-digest configured for 5 minutes
+    # 5 minute "cron" job - should send a mail
+    testConfigDict['managenotifications_mailtime_hit'] = get_test_dict_pattern(
+      testname = 'managenotifications_mailtime_hit',
+      service = 'managenotifications',
+      request = {'mailtime':'5'},
+    )
+    # 10 minute "cron" job - should not send a mail
+    testConfigDict['managenotifications_mailtime_miss'] = get_test_dict_pattern(
+      testname = 'managenotifications_mailtime_miss',
+      service = 'managenotifications',
+      request = {'mailtime':'10','user_name':'johndoe'},
+    )
+    
+    #serviceList.append(testConfigDict['managenotifications'])
+    #serviceList.append(testConfigDict['managenotifications_mailtime_altuser'])
+    #serviceList.append(testConfigDict['managenotifications_mailtime_miss'])
+    serviceList.append(testConfigDict['managenotifications_mailtime_hit'])
+
+
   # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
   if(globals['port'] == '9080'):
     del serviceList
