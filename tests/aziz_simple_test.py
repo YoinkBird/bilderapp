@@ -263,6 +263,12 @@ if __name__ == '__main__':
     serviceList.append(streamsubscribe)
     serviceList.append(streamunsubscribe)
 
+    ## trending - test whether top3 are returned. eventually email as well
+    testConfigDict['trending'] = get_test_dict_pattern(
+      service = 'trending'
+    )
+    serviceList.append(testConfigDict['trending'])
+
   # < override list of services to be tested>
   # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
   if(globals['port'] == '9080'):
