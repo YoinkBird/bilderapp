@@ -1575,15 +1575,21 @@ class CronHandler(webapp2.RequestHandler):
     streams_query = Greeting.query()
     queriedStreams = streams_query.fetch()
 
+    streamPruneLog = []
     
     maxTimeDelta = 3600 # 1 hour
-    maxTimeDelta = 10
+    #debug: # maxTimeDelta = 40
     #self.response.write(('generating views 1/s for %s seconds') % (testDuration))
     for streamInst in queriedStreams:
       jsonRetDict[streamInst.streamid] = {}
       #jsonRetDict[streamInst.streamid]['times_previous'] = streamInst.viewtimes
       jsonRetDict[streamInst.streamid]['times_previous_amount'] = streamInst.views
-      streamInst.viewtimes = self.pruneViewTimes(list = streamInst.viewtimes, maxTimeDelta = maxTimeDelta)
+      if(1): #DEBUG
+        streamInst.viewtimes = self.pruneViewTimes(list = streamInst.viewtimes, maxTimeDelta = maxTimeDelta)
+      else:
+        ## get updated viewtimes and the log
+        streamInst.viewtimes, tmpLog = self.pruneViewTimes(list = streamInst.viewtimes, maxTimeDelta = maxTimeDelta)
+        streamPruneLog.append(tmpLog)
 #      streamInst.viewtimes     = []
       streamInst.views     = len(streamInst.viewtimes)
       # report updated times
@@ -1594,6 +1600,7 @@ class CronHandler(webapp2.RequestHandler):
     # calculate trending
     trends_calculate(self,queriedStreams)
 
+    jsonRetDict['log'] = streamPruneLog
     return jsonRetDict
 
   ################################################################
@@ -1615,17 +1622,29 @@ class CronHandler(webapp2.RequestHandler):
     # store non-removed times
     viewTimePrunedList = []
 
+    logList = []
     # assume sorted
+    import datetime
+    timeDelta = datetime.timedelta(seconds = varDict['maxTimeDelta'])
     # compare 0th to last and work backwards until done - it is sorted!
-    latestViewtime = viewtimeList[0]
-    for viewTime in reversed(viewtimeList):
+    #latestViewTime = viewtimeList[0]
+    latestViewTime = datetime.datetime.now()
+    logList.append('datetime.now(): %s' % (str(latestViewTime)))
+    for viewTime in (viewtimeList):
       ## desc: if latest - current > 3600
-      if((viewTime - latestViewtime).total_seconds() > varDict['maxTimeDelta']):
+      #if((viewTime - latestViewTime) > timeDelta):
+      #nope if((viewTime - latestViewTime).total_seconds() > timeDelta):
+      logList.append('comparing: %s - %s > %s' % (str(viewTime), str(latestViewTime), str(varDict['maxTimeDelta'])))
+      #if((viewTime - latestViewTime).total_seconds() > varDict['maxTimeDelta']):
+      if((latestViewTime - viewTime).total_seconds() > varDict['maxTimeDelta']):
+        logList.append('result: yes')
         del viewTime 
       else:
         viewTimePrunedList.append(viewTime)
-      
+        logList.append('result: no')
+
     return viewTimePrunedList
+    #debug:# return viewTimePrunedList, logList
   ################################################################
 #</class_CronHandler>
 ###############################################################################
