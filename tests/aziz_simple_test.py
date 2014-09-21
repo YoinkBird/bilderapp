@@ -220,10 +220,9 @@ if __name__ == '__main__':
     ## cron_summarygen
     testConfigDict['cron_summarygen'] = get_test_dict_pattern(
       service = 'cron_summarygen',
-      #request = {'stream_id':'grass','streamid':'nerfherder'},
-      #repeat  = 15,
       )
-    serviceList.append(testConfigDict['cron_summarygen'])
+    if(0): #TMP: don't run the cron cleanup, waiting for actual cron to work
+      serviceList.append(testConfigDict['cron_summarygen'])
 
 
     ## genericquery
