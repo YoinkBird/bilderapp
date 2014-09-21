@@ -207,6 +207,7 @@ class Greeting(ndb.Model):
 #</class_Stream>
 ###############################################################################
 
+
 ###############################################################################
 #<>
 # NOTE: 'cls' is equ to 'self', bit confusing at first
@@ -232,6 +233,15 @@ class StreamSubscription(ndb.Model):
      return cls.query(cls.user_id == user_id, cls.stream_id == stream_id_key).get()
 #</>
 ###############################################################################
+
+
+###############################################################################
+# < class_TrendingStream>
+class TrendingStream(ndb.Model):
+  streamsList = ndb.KeyProperty(kind = Greeting, repeated = True)
+# < class_TrendingStream>
+###############################################################################
+
 
 ###############################################################################
 #< class_UserInfo>
@@ -1369,6 +1379,68 @@ class form2json(webapp2.RequestHandler):
 #</class_form2json>
 ###############################################################################
 
+###############################################################################
+def trends_calculate(self,streamList):
+    # calculate trending
+    # 1. store all viewcounts as 'viewcount->streamObject
+    # 2. sort dict
+    # 3. store top three results
+    viewsDict = {}
+    #step1:
+    for streamInst in streamList:
+      viewsDict[streamInst.views] = streamInst
+    #step2:
+    numTrendStreams = 3
+    orderedList = sorted(viewsDict)
+    orderedList.reverse()
+    trendingList = orderedList[0:numTrendStreams]
+    #^^^^ works ^^^^
+
+    #step3: storage
+    trendSetter = TrendingStream(
+        id = 'theonlytrendingstreamtrackerwewilleverneedasfarasicantell'
+        )
+    for viewCount in trendingList:
+      trendSetter.streamsList.append(viewsDict[viewCount].key)
+    trendSetter.put()
+###############################################################################
+
+
+###############################################################################
+def trends_retreive(self):
+  # get trending streams
+  streamKeyList = TrendingStream.query().fetch()[0].streamsList
+  trendingStreamsList = []
+  for streamKey in streamKeyList:
+    trendingStreamsList.append(streamKey.get())
+  return trendingStreamsList
+###############################################################################
+
+
+###############################################################################
+#< class_TrendingHandler>
+class TrendingHandler(webapp2.RequestHandler):
+  def get(self):
+    #self.post()
+    #< DEBUG: calculate trends - send to 'CronHandler'>
+    streams_query = Greeting.query()
+    queriedStreams = streams_query.fetch()
+    #trends_calculate(self,queriedStreams)
+    #</DEBUG: calculate trends - send to 'CronHandler'>
+    # display 
+    streamsList = trends_retreive(self)
+    streamDescList = []
+    for stream in streamsList:
+      streamDescDict = {}
+      streamDescDict = stream.to_dict(include=['streamid','coverurl'])
+      streamDescList.append(streamDescDict)
+    jsonStr = json.dumps(streamDescList)
+    self.response.write(htmlPprintJson(jsonStr))
+    self.response.write(jsonStr)
+
+#< class_TrendingHandler>
+###############################################################################
+
 
 ###############################################################################
 #< class_CronHandler>
@@ -1471,6 +1543,7 @@ application = webapp2.WSGIApplication([
     ('/managestreamsub',SubscribeStreamService),
     ('/form2json',form2json),
     ('/cron_summarygen',CronHandler),
+    ('/trending',TrendingHandler),
 ], debug=True)
 
 ###############################################
