@@ -1422,12 +1422,12 @@ def trends_retreive(self):
 ###############################################################################
 #< class_TrendingHandler>
 class TrendingHandler(webapp2.RequestHandler):
-  def get(self):
-    #self.post()
+  def post(self):
     #< DEBUG: calculate trends - send to 'CronHandler'>
-    streams_query = Greeting.query()
-    queriedStreams = streams_query.fetch()
-    #trends_calculate(self,queriedStreams)
+    if(0):
+      streams_query = Greeting.query()
+      queriedStreams = streams_query.fetch()
+      trends_calculate(self,queriedStreams)
     #</DEBUG: calculate trends - send to 'CronHandler'>
     # display 
     streamsList = trends_retreive(self)
@@ -1437,8 +1437,23 @@ class TrendingHandler(webapp2.RequestHandler):
       streamDescDict = stream.to_dict(include=['streamid','coverurl'])
       streamDescList.append(streamDescDict)
     jsonStr = json.dumps(streamDescList)
-    self.response.write(htmlPprintJson(jsonStr))
     self.response.write(jsonStr)
+
+  def get(self):
+    response = ''
+    tile = '<h1>Top 3 Trending Streams</h1>'
+
+    # get top3 trending streams
+    jsonStr = sendJson(self, jsondata={}, service_name = 'trending')
+
+    # html content render
+    contentList = []
+    contentList.append(tile)
+    contentList.append(htmlPprintJson(jsonStr))
+
+    for content in contentList:
+      response += content + '\n'
+    self.response.write(response)
 
 #< class_TrendingHandler>
 ###############################################################################
