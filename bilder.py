@@ -1498,13 +1498,21 @@ class TrendingHandler(webapp2.RequestHandler):
 
 ###############################################################################
 def email_digest_update(self,emailrate):
+  varDict = {}
+  varDict['emailrate'] = emailrate
   user = get_user_data()
+  if(not emailrate):
+    # if no emailrate spec'd then assume user wanted to unsubscribe
+    varDict['emailrate'] = 0
   userEmailPref = DigestInformation(
     id          = user.email(),
+    #DEBUG:
+    #id          = user.email() + '_' + str(emailrate),
     useraccount = user,
-    frequency   = int(emailrate),
+    frequency   = int(varDict['emailrate']),
     )
   userEmailPref.put()
+  #TODO: remove if '0' specified, no use keeping that around
   #debug
   if(1):
     log = '-email_digest_update- added or updated user: %s' % str(user)
@@ -1517,9 +1525,12 @@ def email_digest_update(self,emailrate):
 # retreive all registered emails
 # notify based on preferences
 def email_digest_retreive(self,**kwargs):
+  # get all digest-subscriptions
   digestInfoList = DigestInformation.query().fetch()
+  # get all digest-subscriptions of specified frequency
   if('frequency' in kwargs):
     digestInfoList = DigestInformation.query(DigestInformation.frequency == int(kwargs['frequency'])).fetch()
+  # store emails and logs
   emailList = []
   logList = []
   if(len(digestInfoList) == 0):
@@ -1581,7 +1592,7 @@ class EmailDigestHandler(webapp2.RequestHandler):
     except: # x-www-form
       #redirect = self.request.get('redirect',1) # for now, simply check if true is defined
       for param in ['emailrate',]:
-        postVarDict[param] = self.request.get(param, 'unspecified')
+        postVarDict[param] = self.request.get(param, '0')
     #</read in options>
 
     logList = []
