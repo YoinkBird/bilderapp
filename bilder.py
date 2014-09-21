@@ -1385,13 +1385,7 @@ class form2json(webapp2.RequestHandler):
 # post: generate the stats; run from cron and NEVER user/other things
 # get : show the stats + subscription-option checkboxes
 class CronHandler(webapp2.RequestHandler):
-#  def get(self):
-#    debug = 0
-#    if(debug >= 1):
-#      self.response.write(htmlParen('> self.request.body'))
-#      self.response.write(self.request.body)
   def get(self):
-    self.response.write('you should not be here, Dave')
     self.post()
 
   def post(self):
@@ -1410,24 +1404,15 @@ class CronHandler(webapp2.RequestHandler):
     queriedStreams = streams_query.fetch()
 
     
-    # DEBUG: add fake view times
-    maxTimeDelta = 3
-    testDuration = maxTimeDelta * 3  #make sure old views are generated, i.e. older than the time delta
+    maxTimeDelta = 3600 # 1 hour
+    maxTimeDelta = 10
     #self.response.write(('generating views 1/s for %s seconds') % (testDuration))
-    viewtimeList = self.genTimeListForTestingOnly(testDuration)
     for streamInst in queriedStreams:
       jsonRetDict[streamInst.streamid] = {}
-      #< debug - add times>
-      streamInst.viewtimes = viewtimeList
-      streamInst.views     = len(streamInst.viewtimes)
-      streamInst.put()
-      #</debug - add times>
       #jsonRetDict[streamInst.streamid]['times_previous'] = streamInst.viewtimes
       jsonRetDict[streamInst.streamid]['times_previous_amount'] = streamInst.views
-      #works: self.pruneViewTimes(list = streamInst.viewtimes, maxTimeDelta = 5)
       streamInst.viewtimes = self.pruneViewTimes(list = streamInst.viewtimes, maxTimeDelta = maxTimeDelta)
-      # debug - clear viewtimes
-      #streamInst.viewtimes = []
+#      streamInst.viewtimes     = []
       streamInst.views     = len(streamInst.viewtimes)
       # report updated times
       #jsonRetDict[streamInst.streamid]['times_updated'] = streamInst.viewtimes
@@ -1436,50 +1421,33 @@ class CronHandler(webapp2.RequestHandler):
     return jsonRetDict
 
   ################################################################
-  def genTimeListForTestingOnly(self, testDuration):
-    import datetime
-    import time
-    viewtimeList = []
-    for clicks in range(0,testDuration):
-      viewtimeList.append(datetime.datetime.now())
-      print('wait 1')
-      time.sleep(1)
-    return viewtimeList
-  ################################################################
-  ################################################################
   # input: one list of viewtimes
   def pruneViewTimes(self, **kwargs):
     varDict = {}
-    varDict['maxTimeDelta'] = 3600 # 1 hour = 60min/h * 60s/min = 3600 s/h
+    #varDict['maxTimeDelta'] = 3600 # 1 hour = 60min/h * 60s/min = 3600 s/h
     # < read in options>
     if kwargs:
       for param in ['list','maxTimeDelta']:
         if param in kwargs:
           varDict[param] = kwargs[param]
     #</read in options>
-    #varDict['maxTimeDelta'] = 0
-
-    #DEBUG:
-    #print('\ndelta:' + str(varDict['maxTimeDelta']) + '\n')
+    viewtimeList = varDict['list']
+    # if list is null don't process
+    if(len(viewtimeList) == 0):
+      return viewtimeList
 
     # store non-removed times
     viewTimePrunedList = []
 
     # assume sorted
     # compare 0th to last and work backwards until done - it is sorted!
-    viewtimeList = varDict['list']
     latestViewtime = viewtimeList[0]
     for viewTime in reversed(viewtimeList):
-      # if latest - current > 3600
+      ## desc: if latest - current > 3600
       if((viewTime - latestViewtime).total_seconds() > varDict['maxTimeDelta']):
-      #if((viewTime - latestViewtime).total_seconds() > 0):
         del viewTime 
       else:
         viewTimePrunedList.append(viewTime)
-    print('does del work? list:')
-    print('len: %s' % len(viewtimeList))
-    print('pruned list - viewTimePrunedList')
-    print('len: %s' % len(viewTimePrunedList))
       
     return viewTimePrunedList
   ################################################################
