@@ -321,6 +321,16 @@ if __name__ == '__main__':
     #serviceList.append(testConfigDict['managenotifications_mailtime_altuser'])
     #serviceList.append(testConfigDict['managenotifications_mailtime_miss'])
     serviceList.append(testConfigDict['managenotifications_mailtime_hit'])
+  ## image upload test
+  if(1):
+    #serviceList = [] # clear out 
+    testConfigDict['img_upload_formtest'] = get_test_dict_pattern(
+      testname = 'img_upload_form',
+      service = 'img_upload',
+      request = {'streamid':'grass','file_name':'http://www.clipartbest.com/cliparts/MTL/jg7/MTLjg7aTa.png'},
+      headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
+    )
+    serviceList.append(testConfigDict['img_upload_formtest'])
 
 
   # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
