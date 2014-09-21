@@ -1408,11 +1408,13 @@ def trends_calculate(self,streamList):
 
 ###############################################################################
 def trends_retreive(self):
-  # get trending streams
-  streamKeyList = TrendingStream.query().fetch()[0].streamsList
   trendingStreamsList = []
-  for streamKey in streamKeyList:
-    trendingStreamsList.append(streamKey.get())
+  # get trending streams
+  trend_query_list = TrendingStream.query().fetch()
+  if(trend_query_list):
+    streamKeyList = trend_query_list[0].streamsList
+    for streamKey in streamKeyList:
+      trendingStreamsList.append(streamKey.get())
   return trendingStreamsList
 ###############################################################################
 
