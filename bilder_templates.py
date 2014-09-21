@@ -106,9 +106,9 @@ def gen_html_form_emailrate(**kwargs):
   #impl note: run cron every 5 minutes and read this data
   checkBoxConfigList = [
       ('0','No reports'),
-      ('5','Every 5 minutes'),
-      ('1','Every 1 hour'),
-      ('1','Every day'),
+      ('5','Every 5 minutes'),  # 1 min is smallest unit I will use for an email rate :-)
+      ('60','Every 1 hour'),    # 1 h == 60 min
+      ('1440','Every day'),     # 24 * 60 min == 1440 min
       ]
   cboxGroup = 'emailrate'
   cboxFormComponent = ''

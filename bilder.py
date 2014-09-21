@@ -105,7 +105,8 @@ def get_user_data():
     # < mock user>
     # mock user: # src: http://stackoverflow.com/a/6230083
     import os
-    os.environ['USER_EMAIL'] = 'poland.barker@swedishcomedy.com'
+    #os.environ['USER_EMAIL'] = 'poland.barker@swedishcomedy.com'
+    os.environ['USER_EMAIL'] = 'leewatson1@gmail.com'
     os.environ['USER_ID'] = 'pbarker'
     #   < more mock user values>
     #os.environ['AUTH_DOMAIN'] = 'testbed' # To avoid  /google/appengine/api/users.py:115 - AssertionError: assert _auth_domain
@@ -1505,19 +1506,76 @@ def email_digest_update(self,emailrate):
     )
   userEmailPref.put()
   #debug
-  self.response.write(user)
-  return
+  if(1):
+    log = '-email_digest_update- added or updated user: %s' % str(user)
+    #self.response.write(htmlParen('"email_digest_update" added user: %s' % str(user)))
+  return log
 ###############################################################################
 
+
+###############################################################################
+# retreive all registered emails
+# notify based on preferences
+def email_digest_retreive(self,**kwargs):
+  digestInfoList = DigestInformation.query().fetch()
+  if('frequency' in kwargs):
+    digestInfoList = DigestInformation.query(DigestInformation.frequency == int(kwargs['frequency'])).fetch()
+  emailList = []
+  logList = []
+  if(len(digestInfoList) == 0):
+    logList.append('no matches found for frequency %s' % (kwargs['frequency']))
+  for info in digestInfoList:
+    emailList.append(info.useraccount.email())
+    #debug
+    #logList.append(info.frequency)
+    if(1):
+      logList.append('-email_digest_retreive- digest rate: %s' % str(info.frequency))
+  jsonRetDict = {'log':logList, 'emailList':emailList}
+  return json.dumps(jsonRetDict)
+  return emailList
+###############################################################################
+
+
+###############################################################################
+def email_digest_sendmaillist(self,**kwargs):
+  maillist = []
+  varDict = {}
+  varDict['maillist'] = [] # to be used
+  varDict['subject']  = 'trending update at connexus'
+  varDict['body']     = 'connexus trending summary'
+  if('maillist' in kwargs):
+    maillist = kwargs['maillist']
+
+
+  from google.appengine.api import mail
+
+  for email in maillist:
+    recipient = email
+    mail.send_mail(sender="leewatson1@gmail.com",
+                  to=recipient,
+                  subject="trending update at connexus",
+                  body="""
+                  connexus trending summary
+                  """)
+  return
+
+###############################################################################
 
 ################################################################
 # < class_EmailDigestHandler>
 class EmailDigestHandler(webapp2.RequestHandler):
+  def get(self):
+    self.response.write('hi')
+    #self.response.write(self.request.url)
+    self.response.write(self.request.get('emailrate',0))
+    #jsonStr = sendJson(self, jsondata={''}, service_name = 'managenotifications')
+
   def post(self):
     postVarDict = {}
     # < read in options>
     try: # json input
       postVarDict = json.loads(self.request.body)
+      # TODO: move after try/catch
       if(not 'user_name' in postVarDict):
         postVarDict['user_name'] = get_user_data()
     except: # x-www-form
@@ -1526,16 +1584,46 @@ class EmailDigestHandler(webapp2.RequestHandler):
         postVarDict[param] = self.request.get(param, 'unspecified')
     #</read in options>
 
+    logList = []
     # update email frequency
     if 'emailrate' in postVarDict:
-      email_digest_update(self, postVarDict['emailrate'])
+      logList.append(email_digest_update(self, postVarDict['emailrate']))
+    # send email to registered people
+    if 'mailtime' in postVarDict:
+      emailList = []
+      # vvvv working vvvv
+      if(0):
+        emailList = email_digest_retreive(self, frequency = postVarDict['mailtime'])
+        logList.append(emailList)
+      # ^^^^ working ^^^^
+      else:
+        jsonStr =  email_digest_retreive(self, frequency = postVarDict['mailtime'])
+        # get list of emails
+        jsonDict = json.loads( email_digest_retreive(self, frequency = postVarDict['mailtime']))
+        emailList = jsonDict['emailList']
+        # add trends to dict for debug output
+        #trendingStreamsList = trends_retreive(self)
+        #jsonDict['trending'] = trendingStreamsList
+        jsonDict['trending'] = json.loads(sendJson(self, jsondata={}, service_name = 'trending'))
+        #jsonDict['trending'] = trendingStreamsList
+        ####
+        jsonStr = json.dumps(jsonDict)
+        self.response.write(jsonStr)
+        email_digest_sendmaillist(self,
+          maillist = emailList,
+          body     = json.dumps(jsonDict['trending'])
+        )
+        return
+      
 
+      #self.response.write(emailList)
 
-    self.response.write(self.request.body)
+    #self.response.write(self.request.body)
     #DEBUG purposes:
     if 'user_name' in postVarDict:
       postVarDict['user_name'] = str(postVarDict['user_name'])
-   # self.response.write(json.dumps(postVarDict))
+    postVarDict['log'] = logList
+    self.response.write(json.dumps(postVarDict))
 
 # </class_EmailDigestHandler>
 ################################################################
