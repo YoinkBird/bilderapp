@@ -246,17 +246,20 @@ if __name__ == '__main__':
     requestDict['submanage'] = 'subscribe'
    #     'headers' : {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"},
     streamsubscribe = {
+        'testname': 'submanage_subscribe',
         'service' : 'streamsubscribe',
         'request' : copy.copy(requestDict),
     }
     # unsub
     requestDict['submanage'] = 'unsubscribe'
     streamunsubscribe = {
+        'testname': 'submanage_unsubscribe',
         'service' : 'streamsubscribe',
         'testname': 'streamunsubscribe',
         'request' : copy.copy(requestDict),
     }
     streamdonothing = copy.deepcopy(streamunsubscribe)
+    streamdonothing['testname'] = 'submanage_NOP_test',
     del(streamdonothing['request']['submanage'])
 
     serviceList.append(streamdonothing)
