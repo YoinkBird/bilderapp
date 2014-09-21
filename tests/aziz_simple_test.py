@@ -267,6 +267,13 @@ if __name__ == '__main__':
       service = 'trending'
     )
     serviceList.append(testConfigDict['trending'])
+    ## managenotifications - test whether top3 are returned. eventually email as well
+    testConfigDict['managenotifications'] = get_test_dict_pattern(
+      service = 'managenotifications',
+      request = {'emailrate':'5'},
+    )
+    serviceList.append(testConfigDict['managenotifications'])
+
 
   # < override list of services to be tested>
   # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 

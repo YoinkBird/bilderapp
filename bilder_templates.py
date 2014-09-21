@@ -77,7 +77,54 @@ def get_html_template_table(tableRows):
   return template
 #</get_html_template_table>
 
-#< get_html_template_search_form>
+################################################################
+# < def_gen_html_form_checkbox>
+# works as tested on 'manage' service
+def gen_html_form_checkbox(name,value):
+  checkbox = '<input type="checkbox" name="%s" value="%s">' % (name,value)
+  return checkbox
+# </def_gen_html_form_checkbox>
+################################################################
+
+
+################################################################
+# < def_gen_html_form_emailrate>
+def gen_html_form_emailrate(**kwargs):
+  #< read in options>
+  paramDict = {}
+  if(kwargs):
+    for param in ['action']:
+      if param in kwargs:
+        paramDict[param] = kwargs[param]
+      else:
+        paramDict['param'] = 'default_%s' % (param)
+  #paramDict['action'] = 'default' # HACK TODO:
+  inputValue = 'Update Notifcation Rate'
+  #</read in options>
+  # det up values
+  template = ''
+  #impl note: run cron every 5 minutes and read this data
+  checkBoxConfigList = [
+      ('0','No reports'),
+      ('5','Every 5 minutes'),
+      ('1','Every 1 hour'),
+      ('1','Every day'),
+      ]
+  cboxGroup = 'emailrate'
+  cboxFormComponent = ''
+  for cboxConf in checkBoxConfigList:
+    #TODO: use a label
+    #cboxFormComponent += gen_html_form_checkbox(cboxGroup, cboxConf[1]) + str(cboxConf[1])
+    cboxFormComponent += gen_html_form_checkbox(cboxGroup, cboxConf[0]) + cboxConf[1]
+    cboxFormComponent += '<br/>\n'
+  
+  template += generateContainerDivBlue(cboxFormComponent)
+  template = gen_html_form(paramDict['action'] , 'post', inputValue, template)
+  return template
+# </def_gen_html_form_emailrate>
+################################################################
+
+
 def get_html_template_search_form(**kwargs):
   # default
   action = '/searchallstreams'

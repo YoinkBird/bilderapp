@@ -93,6 +93,29 @@ def sendJson(self,**kwargs):
 ################################################################
 
 
+###############################################################################
+# < def_get_user_data>
+# return a fake user if not logged in
+def get_user_data():
+  user = ''
+  if users.get_current_user():
+      user = users.get_current_user()
+  else:
+    #  stream.author = 'anonymous' - nono! it's a usertype, can't simply asign
+    # < mock user>
+    # mock user: # src: http://stackoverflow.com/a/6230083
+    import os
+    os.environ['USER_EMAIL'] = 'poland.barker@swedishcomedy.com'
+    os.environ['USER_ID'] = 'pbarker'
+    #   < more mock user values>
+    #os.environ['AUTH_DOMAIN'] = 'testbed' # To avoid  /google/appengine/api/users.py:115 - AssertionError: assert _auth_domain
+    #os.environ['USER_IS_ADMIN'] = '1'     #  for an administrative user
+    #   </more mock user values>
+    # </mock user>
+    user = users.get_current_user()
+  return user
+# </def_get_user_data>
+###############################################################################
 
 def genNav():
   #TODO: match link targets with the mockups, tie-in to 'application = webapp2.WSGIApplication'
@@ -240,6 +263,16 @@ class StreamSubscription(ndb.Model):
 class TrendingStream(ndb.Model):
   streamsList = ndb.KeyProperty(kind = Greeting, repeated = True)
 # < class_TrendingStream>
+###############################################################################
+
+
+###############################################################################
+# < class_DigestInformation>
+# store user email frequency preferences ("digest")
+class DigestInformation(ndb.Model):
+  useraccount = ndb.UserProperty(required = True)
+  frequency   = ndb.IntegerProperty(required = True)
+# < class_DigestInformation>
 ###############################################################################
 
 
@@ -1450,6 +1483,9 @@ class TrendingHandler(webapp2.RequestHandler):
     contentList = []
     contentList.append(tile)
     contentList.append(htmlPprintJson(jsonStr))
+    contentList.append(
+      bilder_templates.gen_html_form_emailrate(action = '/managenotifications')
+      )
 
     for content in contentList:
       response += content + '\n'
@@ -1457,6 +1493,52 @@ class TrendingHandler(webapp2.RequestHandler):
 
 #< class_TrendingHandler>
 ###############################################################################
+
+
+###############################################################################
+def email_digest_update(self,emailrate):
+  user = get_user_data()
+  userEmailPref = DigestInformation(
+    id          = user.email(),
+    useraccount = user,
+    frequency   = int(emailrate),
+    )
+  userEmailPref.put()
+  #debug
+  self.response.write(user)
+  return
+###############################################################################
+
+
+################################################################
+# < class_EmailDigestHandler>
+class EmailDigestHandler(webapp2.RequestHandler):
+  def post(self):
+    postVarDict = {}
+    # < read in options>
+    try: # json input
+      postVarDict = json.loads(self.request.body)
+      if(not 'user_name' in postVarDict):
+        postVarDict['user_name'] = get_user_data()
+    except: # x-www-form
+      #redirect = self.request.get('redirect',1) # for now, simply check if true is defined
+      for param in ['emailrate',]:
+        postVarDict[param] = self.request.get(param, 'unspecified')
+    #</read in options>
+
+    # update email frequency
+    if 'emailrate' in postVarDict:
+      email_digest_update(self, postVarDict['emailrate'])
+
+
+    self.response.write(self.request.body)
+    #DEBUG purposes:
+    if 'user_name' in postVarDict:
+      postVarDict['user_name'] = str(postVarDict['user_name'])
+   # self.response.write(json.dumps(postVarDict))
+
+# </class_EmailDigestHandler>
+################################################################
 
 
 ###############################################################################
@@ -1566,6 +1648,7 @@ application = webapp2.WSGIApplication([
     ('/form2json',form2json),
     ('/cron_summarygen',CronHandler),
     ('/trending',TrendingHandler),
+    ('/managenotifications',EmailDigestHandler),
 ], debug=True)
 
 ###############################################
