@@ -908,14 +908,21 @@ class ImgUpload(webapp2.RequestHandler):
     response = ''
 
     # look up stream
+    # TODO: determine whether 'stream_name' is needed
     stream_name = self.request.get('streamid')
     
     #< read in options>
-    #TODO: get dict directly from self.request.get
+    #TODO: convert to - postVarDict = {}
     paramDict = {}
-    for param in ['streamid', 'file_name', 'file_comments']:
-      paramDict[param] = self.request.get(param, 'unspecified')
-      response += param + ': ' + paramDict[param] + '<br/>'
+    try: # json input
+      paramDict = json.loads(self.request.body)
+      # TODO: move after try/catch
+      if(not 'user_name' in paramDict):
+        paramDict['user_name'] = get_user_data()
+    except: # x-www-form
+      for param in ['streamid', 'file_name', 'file_comments']:
+        paramDict[param] = self.request.get(param, 'unspecified')
+        response += param + ': ' + paramDict[param] + '<br/>'
     #</read in options>
 
     # have to retrieve stream from DB
@@ -961,11 +968,14 @@ class ImgUpload(webapp2.RequestHandler):
     response = bilder_templates.generateContainerDivBlue(response)
     response = bilder_templates.generateContainerDiv('<h1>Handler: ViewSingleStream</h1>' + response,'#C0C0C0')
     #stream_query = Greeting.query
-    #DEBUG: self.response.write(response)
 #TODO: redirect back
     query_params = urllib.urlencode({'streamid': stream_name})
     action = '/viewsinglestream?' + query_params 
-    self.redirect(action)
+    #DEBUG: 
+    if(1):
+      self.redirect(action)
+    else:
+      self.response.write(response)
 #< class ImgUpload>
 ###############################################################################
 
