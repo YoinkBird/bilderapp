@@ -31,6 +31,7 @@ globals = {
  
 horizline = ('#' * 32)
 passedList = []
+warnedList = []
 failedList = []
 def send_request(conn, url, req, **kwargs):
     #jsontest = 0  # dataprocess fail, form2json pass
@@ -68,8 +69,13 @@ def send_request(conn, url, req, **kwargs):
       jsonresp = json.loads(response)
       passedList.append(url)
     except:
-      jsonresp = 'testrunner_json.loads_fail'
-      failedList.append(url)
+      if(jsontest == 1):
+        jsonresp = 'testrunner_json.loads_fail'
+        failedList.append(url)
+      else:
+        jsonresp = '-I-: form header - skipping json load check'
+        warnedList.append("form header:" + url) # don't fail the test, but mark that it is not json
+        passedList.append(url)
     print '  %s' % jsonresp
     print "easy to read:"
     print '  %s' % json.dumps(jsonresp, indent=4)
