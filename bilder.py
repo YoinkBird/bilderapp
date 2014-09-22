@@ -356,7 +356,9 @@ class Manage(webapp2.RequestHandler):
       if(postVarDict['delete'] == 'stream'):
         # get all stream items
         itemDeleteList = self.request.get_all('stream_delete')
-        self.response.write(json.dumps(itemDeleteList))
+        if(1):
+          self.response.write(json.dumps(itemDeleteList))
+        self.delete_streams(itemDeleteList)
         #delete subscription and stream
         print('')
       if(postVarDict['delete'] == 'subscription'):
@@ -376,6 +378,11 @@ class Manage(webapp2.RequestHandler):
     print('')
     for streamid in stream_idList:
       jsonStr = sendJson(self, jsondata={"stream_name": streamid, "submanage": "unsubscribe"}, service_name = 'streamsubscribe')
+    return
+  def delete_streams(self,stream_idList):
+    print('')
+    for streamid in stream_idList:
+      jsonStr = sendJson(self, jsondata={"streamid": streamid, "manage_action": "delete"}, service_name = 'managestream')
     return
 
 
@@ -1242,6 +1249,42 @@ class SubscribeStreamService(webapp2.RequestHandler):
 
 
 ###############################################################################
+# < class ManageStreamService>
+class ManageStreamService(webapp2.RequestHandler):
+  def post(self):
+    logList = []
+    postVarDict = {}
+    # < read in options>
+    try: # json input
+      postVarDict = json.loads(self.request.body)
+    except: # x-www-form
+      #redirect = self.request.get('redirect',1) # for now, simply check if true is defined
+      for param in ['streamid','manage_action']:
+        postVarDict[param] = self.request.get(param)
+    # set defaults:
+    if(not 'user_name' in postVarDict):
+      postVarDict['user_name'] = get_user_data()
+    #</read in options>
+    #self.response.write(json.dumps(postVarDict))
+
+
+    # Note: remove both stream and subscription
+    if(postVarDict['manage_action'] == 'delete'):
+      # find streams
+      # TEMP - look up string by id - TODO: handle with GenericQueryService
+      streamInst = ndb.Key(Greeting,postVarDict['streamid'], parent = guestbook_key()).get()
+      # delete stream subscription
+      jsonStr = sendJson(self, jsondata={"stream_name": postVarDict['streamid'], "submanage": "unsubscribe"}, service_name = 'streamsubscribe')
+      streamInst.key.delete()
+#    self.redirect('/manage')
+
+
+
+# < class ManageStreamService>
+###############################################################################
+
+
+###############################################################################
 #< class CreateStreamService>
 # * create a stream (which takes a stream definition and returns a status code)
 #NOTE: 
@@ -1879,6 +1922,7 @@ class CronHandler(webapp2.RequestHandler):
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/create', CreateStreamService),
+    ('/managestream', ManageStreamService),
     ('/sign', CreateStreamService), #TODO: rename
     ('/manage', Manage),
     ('/viewsinglestream', ViewSingleStream),
