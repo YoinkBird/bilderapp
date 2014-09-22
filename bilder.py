@@ -334,6 +334,51 @@ class MainPage(webapp2.RequestHandler):
 # balsamiq2: return to management page on submission 
 # -> go to handler for deleting and then return to 'Manage'
 class Manage(webapp2.RequestHandler):
+  def post(self):
+    postVarDict = {}
+    # < read in options>
+    try: # json input
+      postVarDict = json.loads(self.request.body)
+      # TODO: move after try/catch
+      if(not 'user_name' in postVarDict):
+        postVarDict['user_name'] = get_user_data()
+    except: # x-www-form
+      #redirect = self.request.get('redirect',1) # for now, simply check if true is defined
+      for param in ['delete',]:
+        postVarDict[param] = self.request.get(param)
+    #</read in options>
+
+    # get both stream and sub deletes, since removing stream requires removing sub
+    #(TODO: delete sub should delete stream :-) )
+    self.response.write(json.dumps(postVarDict))
+
+    if('delete' in postVarDict):
+      if(postVarDict['delete'] == 'stream'):
+        # get all stream items
+        itemDeleteList = self.request.get_all('stream_delete')
+        self.response.write(json.dumps(itemDeleteList))
+        #delete subscription and stream
+        print('')
+      if(postVarDict['delete'] == 'subscription'):
+        #delete subscription
+        # get all stream items
+        itemDeleteList = self.request.get_all('stream_unsub')
+        if(0): # DEBUG
+          self.response.write(json.dumps(itemDeleteList))
+        #delete subscription
+        self.delete_subscriptions(itemDeleteList)
+        print('')
+      if(postVarDict['delete'] == 'subscription'):
+        #delete subscription
+        print('')
+    self.redirect('/manage') #TODO: don't do this
+  def delete_subscriptions(self,stream_idList):
+    print('')
+    for streamid in stream_idList:
+      jsonStr = sendJson(self, jsondata={"stream_name": streamid, "submanage": "unsubscribe"}, service_name = 'streamsubscribe')
+    return
+
+
   def get(self):
     if users.get_current_user():
         url = users.create_logout_url(self.request.uri)
@@ -406,7 +451,7 @@ class Manage(webapp2.RequestHandler):
       #TODO: remove HACK, implement nicely
       contentHref = '<a href=/viewsinglestream?streamid=%s>%s</a>' % \
           (urllib.quote_plus(greetingDict['content']) , greetingDict['content'])
-      greetingDict['content'] = contentHref
+      greetingDict['contenthref'] = contentHref
       #</HACK>
       greetingDict['date'] = str(greeting.date)
       greetingDict['img_amount'] = str(greeting.img_amount)
@@ -438,7 +483,7 @@ class Manage(webapp2.RequestHandler):
     for greetDict in greetingsOwnList:
       valueList = [] 
       #TODO: make a list with common elements to 'own' and 'sub' and then just add on for 'sub'
-      attribOrderList = ['content','date','img_amount']
+      attribOrderList = ['contenthref','date','img_amount']
       for attrib in attribOrderList:
         valueList.append(greetDict[attrib])
       # add the checkbox
@@ -487,8 +532,8 @@ class Manage(webapp2.RequestHandler):
 
     # form: own streams
     #TODO: make a fancy button with the (X) on it
-    form_streams_own = gen_html_form('delete_stream','post','(X) Delete Checked Streams',table_streams_own)
-    form_streams_sub = gen_html_form('delete_stream','post','(X) Unsubscribed Checked Streams',table_streams_sub)
+    form_streams_own = gen_html_form('manage?delete=stream',      'post','(X) Delete Checked Streams',      table_streams_own)
+    form_streams_sub = gen_html_form('manage?delete=subscription','post','(X) Unsubscribed Checked Streams',table_streams_sub)
 
 
     contentList = []
