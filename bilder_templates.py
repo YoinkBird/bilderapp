@@ -1,3 +1,4 @@
+import json
 ################################################################
 # < def_functionTemplate>
 #def functionTemplate:
@@ -135,6 +136,64 @@ def gen_html_form_emailrate(**kwargs):
   template = gen_html_form(paramDict['action'] , 'post', inputValue, template)
   return template
 # </def_gen_html_form_emailrate>
+################################################################
+
+################################################################
+# < def_gen_html_gallery>
+# usage:
+#    response += bilder_templates.gen_html_gallery(jsonImgStr = jsonParam, imgrange = 5)
+def gen_html_gallery(**kwargs):
+  imgDataDict = {}
+  #imgDataDict = 'no_images'
+  imgDataDict['imgrange'] = 3 # default num photos to display
+  if('jsonImgStr' in kwargs):
+    imgDataDict['imgList'] = json.loads(kwargs['jsonImgStr'])
+  if('imgList' in kwargs):
+    imgDataDict['imgList'] = kwargs['imgList']
+  # </options>
+  # desired data format:
+  # img->tag
+  # streamid->name
+  # tags -> tags
+  # needs:
+  # coverurl -> <string>
+
+  
+  # div
+  bgcolor = '#93C572' #pistachio' # tried: ['seagreen']
+  divStyleTemplate = \
+    '''
+    border-style:solid;
+    border-width:1px;
+    padding:0.5em 0.5em 0.5em 0.5em;
+    background-color:%s;
+    height: 100px
+    width: 100px
+    '''
+  divStyle = divStyleTemplate % (bgcolor)
+  # /div
+
+  galleryList = []
+  # handle both single photos and photos with captions
+  # either: imgUrls = dict.keys()
+  #imgNames = imgDataDict['imgDict'].keys() # for 'vew all' streams
+  # or    : imgUrls = list of images
+  imgNames = imgDataDict['imgList']
+  for imgurl in (imgNames[:imgDataDict['imgrange']]):
+    htmlImgTag = '<img src="%s" alt="%s" height=80px/> |' % (imgurl, imgurl)
+    imgDiv     = '<div style="%s">%s</div>' % (divStyle, htmlImgTag )
+    #imgDiv += '<p>%s</p>' % (imgurl) # make sure this doesn't break 'viewsinglestream'
+    galleryList.append(imgDiv)
+
+  galleryStrTable = get_html_template_table(
+     generateTableRow(galleryList)
+     )
+
+  galleryStr = galleryStrTable
+  return generateContainerDiv(galleryStr,'wheat',title='Stream Gallery')
+  #response += bilder_templates.generateContainerDiv(jsonStr,bgcolor='wheat',title='Stream Gallery')
+
+# </def_gen_html_gallery>
 ################################################################
 
 

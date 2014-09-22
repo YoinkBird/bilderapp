@@ -549,12 +549,18 @@ class ViewSingleStream(webapp2.RequestHandler):
     #self.response.write(str(streamInst)) # for debug, examine the 'key=Key(...)'
     imgList = [] 
     # see if there are any urls attached; if so then display them
+    jsonDataDict = {}
     if streamInst.imgurls:
       imgList = streamInst.imgurls
+      jsonDataDict['imgurls'] = streamInst.imgurls
+      jsonDataDict['range'] = len(streamInst.imgurls)
+    if streamInst.coverurl:
+      jsonDataDict['coverurl'] = streamInst.coverurl
     
     #TODO: range - "pagination" through DB of images, i.e return <range_lower>:<range_upper> images at a time
     range = len(imgList)
     jsonStr = json.dumps({'imgurls':imgList,'range':range})
+    jsonStr = json.dumps(jsonDataDict)
     # update view-count
     streamInst.views += 1
     import datetime
@@ -578,19 +584,20 @@ class ViewSingleStream(webapp2.RequestHandler):
 
 
     # < image gallery>
-    #< REFACTOR_20140919>
+    # Note: keys: imgurls, coverurl, range
     imgJson = sendJson(self, jsondata={'stream_id':stream_name}, service_name = 'viewsinglestream')
     #imgJson = sendJson(self, jsondata=json.dumps({'stream_id':stream_name}), service_name = 'viewsinglestream')
 
     imgDict = json.loads(imgJson)
-    #</REFACTOR_20140919>
-    imgList = imgDict['imgurls']
-    # TODO: range (default 3?), 'more pictures'
     imageGalleryStr = '<p>Image Gallery</p>\n'
-    imageGalleryStr += '<p>TODO: implement proper images</p>'
-    imageGalleryRange = 3
-    if imgList:
-      imageGalleryStr += '<div>|' + ' | '.join(imgList[:imageGalleryRange]) + '|</div>'
+    if('imgurls' in imgDict):
+      imgList = imgDict['imgurls']
+      # TODO: range (default 3?), 'more pictures'
+      imageGalleryStr += '<p>TODO: implement proper images</p>'
+      imageGalleryRange = 3
+      if imgList:
+        imageGalleryStr += '<div>|' + ' | '.join(imgList[:imageGalleryRange]) + '|</div>'
+      response += bilder_templates.gen_html_gallery(imgList = imgList, imgrange = 5)
     # </image gallery>
 
     response += bilder_templates.generateContainerDivBlue(imageGalleryStr)
