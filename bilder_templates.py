@@ -60,6 +60,19 @@ def gen_html_form(action,method,submit_value,contents):
   return html_form
 #</def gen_html_form>
 
+#< def gen_html_form_flexible>
+#TODO: replace the lambda in 'class Manage' with this function
+def gen_html_form_flexible(action,method,submit_value,contents,**kwargs):
+  inputVarDict = {}
+  if('enctype' in kwargs):
+    inputVarDict['enctype'] = kwargs['enctype']
+  formTagAttrib = ''
+  if('enctype' in inputVarDict):
+    formTagAttrib += 'enctype="%s"' % inputVarDict['enctype']
+  html_form = '<form action="%s" method="%s" %s>\n  %s\n  <input type="submit" value="%s">\n</form>\n' % (action, method, formTagAttrib, contents,submit_value)
+  return html_form
+#</def gen_html_form_flexible>
+
 #< get_html_template_table>
 def get_html_template_table(tableRows):
   template = """\
@@ -155,7 +168,7 @@ def get_page_template_upload_file(action):
   </div> 
   """
   #action = 'img_upload'
-  template = gen_html_form(action , 'post', 'Upload File', template)
+  template = gen_html_form_flexible(action , 'post', 'Upload File', template,  enctype="multipart/form-data")
   return template
 #</get_page_template_upload_file>
 

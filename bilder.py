@@ -6,6 +6,10 @@ import urlparse
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from google.appengine.api import urlfetch
+urlfetch.set_default_fetch_deadline(60)
+
+from google.appengine.ext import blobstore
+from google.appengine.ext.webapp import blobstore_handlers
 
 import webapp2
 
@@ -567,7 +571,10 @@ class ViewSingleStream(webapp2.RequestHandler):
     stream_name = self.request.get('streamid','stream_unspecified')
     # http://localhost:8080/viewsinglestream?streamid=kjljljkl
     query_params = urllib.urlencode({'streamid': stream_name})
-    action = '/img_upload?' + query_params 
+    actionFuture = '/img_upload?' + query_params 
+    #blobstore
+    upload_url = blobstore.create_upload_url('/upload?' + query_params)
+    action = upload_url
 
 
     # < image gallery>
@@ -972,12 +979,49 @@ class ImgUpload(webapp2.RequestHandler):
     query_params = urllib.urlencode({'streamid': stream_name})
     action = '/viewsinglestream?' + query_params 
     #DEBUG: 
-    if(1):
+    if(0):
       self.redirect(action)
     else:
       self.response.write(response)
 #< class ImgUpload>
 ###############################################################################
+
+
+class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
+  def post(self):
+    upload_files = self.get_uploads('img')  # 'file' is file upload field in the form
+    #TODO: check if no file uploaded
+    blob_info = upload_files[0]
+    #TODO: before redirect:
+    # 1. get streamid 
+    # 2. json-store the blob_info.key() in the right streamid
+    #self.printinfo() # dump environment info; i ain't got no clue..
+    #hard-coded values for now 
+    #TODO: pass key, in 'img_upload' (class ImgUpload) need to parse key (see ServeHandler)
+    # one way: send url directly, don't worry about saving blob key
+    if(1):
+      from google.appengine.api import images
+      blob_url = images.get_serving_url(blob_key = blob_info.key())
+    jsonStr = sendJson(self, jsondata={"file_name": blob_url , "streamid": "grass"}, service_name = 'img_upload')
+    #self.redirect('/serve/%s' % blob_info.key())
+  def printinfo(self):
+    paramDict = {}
+    response = ''
+    for param in ['streamid', 'file_name', 'file_comments']:
+      paramDict[param] = self.request.get(param)
+      response += param + ': ' + paramDict[param] + '<br/>'
+      
+    self.response.write("<p>request body</p>")
+    self.response.write(self.request.body)
+    self.response.write("<p>form stuff</p>")
+    self.response.write(response)
+
+class ServeHandler(blobstore_handlers.BlobstoreDownloadHandler):
+  def get(self, resource):
+    resource = str(urllib.unquote(resource))
+    blob_info = blobstore.BlobInfo.get(resource)
+    self.send_blob(blob_info)
+
 
 
 #< htmlParen>
@@ -1777,6 +1821,8 @@ application = webapp2.WSGIApplication([
     ('/cron_summarygen',CronHandler),
     ('/trending',TrendingHandler),
     ('/managenotifications',EmailDigestHandler),
+    ('/upload', UploadHandler),
+    ('/serve/([^/]+)?', ServeHandler),
 ], debug=True)
 
 ###############################################
