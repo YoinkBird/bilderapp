@@ -641,20 +641,15 @@ class ViewSingleStream(webapp2.RequestHandler):
     #imgJson = sendJson(self, jsondata=json.dumps({'stream_id':stream_name}), service_name = 'viewsinglestream')
 
     imgDict = json.loads(imgJson)
-    imageGalleryStr = '<p>Image Gallery</p>\n'
     if('imgurls' in imgDict):
       imgList = imgDict['imgurls']
       # TODO: range (default 3?), 'more pictures'
-      imageGalleryStr += '<p>TODO: implement proper images</p>'
-      imageGalleryRange = 3
-      if imgList:
-        imageGalleryStr += '<div>|' + ' | '.join(imgList[:imageGalleryRange]) + '|</div>'
       response += bilder_templates.gen_html_gallery(imgList = imgList, imgrange = 5)
     # </image gallery>
 
-    response += bilder_templates.generateContainerDivBlue(imageGalleryStr)
-    response += bilder_templates.generateContainerDivBlue(bilder_templates.get_page_template_upload_file(action))
-    subscriptionUrlJunk = '/%s?%s=%s' % ('form2json' , 'stream_name', stream_name)
+    response += bilder_templates.generateContainerDivBlue(
+        bilder_templates.get_page_template_upload_file(action)
+        + 'Add an Image')
     subscriptionUrlJunk = '/%s?' % ('form2json')
     #response += bilder_templates.generateContainerDivBlue(bilder_templates.get_html_template_stream_subscribe(subscriptionUrlJunk))
     response += bilder_templates.generateContainerDivBlue(

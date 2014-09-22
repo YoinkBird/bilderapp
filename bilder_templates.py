@@ -219,8 +219,6 @@ def get_html_template_search_form(**kwargs):
 def get_page_template_upload_file(action):
   template = """\
   <div>
-    <p>#TODO: filename is probably 'friendly name', i.e. 'waterfall' instead of DSC02093</p>
-    <textarea name="file_name" rows="1" cols="60">File Name</textarea><br/>
     <textarea name="file_comments" rows="1" cols="60">Comments</textarea><br/>
     <input type="file" name="img"/><br/>
     <!--<input type="submit" value="Upload File"><br/>-->
