@@ -149,10 +149,14 @@ def gen_html_gallery(**kwargs):
     imgDataDict['imgList'] = json.loads(kwargs['jsonImgStr'])
   if('imgList' in kwargs):
     imgDataDict['imgList'] = kwargs['imgList']
+  for param in ['imgConfJson']:
+    if(param in kwargs):
+      imgDataDict[param] = kwargs[param]
   # defaults
    # default num photos to display - show entire list by default
-  if(range not in imgDataDict):
-    imgDataDict['imgrange'] = len(imgDataDict['imgList'])
+  if(0):
+    if(range not in imgDataDict):
+      imgDataDict['imgrange'] = len(imgDataDict['imgList'])
   # </options>
   # desired data format:
   # img->tag
@@ -160,6 +164,49 @@ def gen_html_gallery(**kwargs):
   # tags -> tags
   # needs:
   # coverurl -> <string>
+
+  # configure gallery properties
+  # pass in imgConfig:
+  # imgConfig{
+  #   src     : url
+  #   alt     : description
+  #   caption : label
+  # }
+  # full options:
+  # src-url, alt-text, caption-text
+  # second tier:
+  # src-url, alt-text (should we set this as caption-text?)
+  # src-url, caption-text (set as  alt-text)
+  # basic:
+  # src-url, becomes alt-text, no caption-text
+  imgConfigList = []
+
+  if('imgConfJson' in imgDataDict):
+    imgConfigList = json.loads(imgDataDict['imgConfJson'])
+    # set default alt
+    for imgConf in imgConfigList:
+      # set 'alt' to 'caption' if undef:
+      if('caption' in imgConf and 'alt' not in imgConf):
+        imgConf['alt'] = imgConf['caption']
+      # set 'caption' to 'label' if undef:
+      if('alt' in imgConf and 'caption' not in imgConf):
+        imgConf['caption'] = imgConf['alt']
+    #return (json.dumps(imgConfigList));
+
+    
+  # populate defaults attribs if simple list of urls
+  elif('imgList' in imgDataDict):
+    for imgurl in imgDataDict['imgList']:
+      tmpConf = {
+        'src'     : imgurl,
+        'alt'     : imgurl,
+      }
+      imgConfigList.append(tmpConf)
+
+  # specify default range - alt: check for range further down
+  if(range not in imgDataDict):
+    imgDataDict['imgrange'] = len(imgConfigList)
+
 
   
   # div
@@ -177,15 +224,16 @@ def gen_html_gallery(**kwargs):
   # /div
 
   galleryList = []
-  # handle both single photos and photos with captions
-  # either: imgUrls = dict.keys()
-  #imgNames = imgDataDict['imgDict'].keys() # for 'vew all' streams
-  # or    : imgUrls = list of images
-  imgNames = imgDataDict['imgList']
-  for imgurl in (imgNames[:imgDataDict['imgrange']]):
-    htmlImgTag = '<img src="%s" alt="%s" height=80px/> |' % (imgurl, imgurl)
+  # new:
+  #return (json.dumps(imgConfigList));
+  for imgConfDict in (imgConfigList):
+  #for imgConfDict in (imgConfigList[:imgDataDict['imgrange']]):
+    htmlImgTag = '<img src="%s" alt="%s" height=80px/>' % (imgConfDict['src'], imgConfDict['alt'])
+    if('caption' in imgConfDict):
+      htmlPTag = '<p>%s</p>' % (imgConfDict['caption'])
+      htmlImgTag += htmlPTag
     imgDiv     = '<div style="%s">%s</div>' % (divStyle, htmlImgTag )
-    #imgDiv += '<p>%s</p>' % (imgurl) # make sure this doesn't break 'viewsinglestream'
+    #imgDiv += '<p>%s</p>' % (imgConfDict) # make sure this doesn't break 'viewsinglestream'
     galleryList.append(imgDiv)
 
   galleryStrTable = get_html_template_table(
