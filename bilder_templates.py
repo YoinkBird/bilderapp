@@ -145,11 +145,14 @@ def gen_html_form_emailrate(**kwargs):
 def gen_html_gallery(**kwargs):
   imgDataDict = {}
   #imgDataDict = 'no_images'
-  imgDataDict['imgrange'] = 3 # default num photos to display
   if('jsonImgStr' in kwargs):
     imgDataDict['imgList'] = json.loads(kwargs['jsonImgStr'])
   if('imgList' in kwargs):
     imgDataDict['imgList'] = kwargs['imgList']
+  # defaults
+   # default num photos to display - show entire list by default
+  if(range not in imgDataDict):
+    imgDataDict['imgrange'] = len(imgDataDict['imgList'])
   # </options>
   # desired data format:
   # img->tag

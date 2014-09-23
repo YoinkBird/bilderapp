@@ -729,12 +729,24 @@ class ViewAllStreamsService(webapp2.RequestHandler):
     result = urlfetch.fetch(url,method=urlfetch.POST)
     if(result.status_code == 200):
       jsonStr = 'Total Streams:<br/>\n'
-      jsonStr += htmlPprintJson(result.content)
+      jsonData = result.content
+      jsonStr += htmlPprintJson(jsonData)
       #jsonStr += json.loads(result.content)
     else:
       jsonStr = 'request failed: ' + str(result.status_code)
     response += bilder_templates.generateContainerDivBlue(jsonStr)
     # < query>
+
+    # <covers>
+    # cover images
+    if(1):
+      streamDescList = json.loads(jsonData)
+      streamCoverList = []
+      for streamDict in streamDescList:
+        streamCoverList.append(streamDict['coverurl'])
+
+      response += bilder_templates.gen_html_gallery(imgList = streamCoverList,)# imgrange = 5)
+    # </covers>
 
     # < consolidate and write response>
     ## make navigation sit on top
@@ -1022,6 +1034,9 @@ class ImgUpload(webapp2.RequestHandler):
       # write new list to object
       streamInstance.imgurls = imgList
       streamInstance.img_amount = len(imgList)
+      # update coverurl if not defined
+      if(not streamInstance.coverurl):
+        streamInstance.coverurl = streamInstance.imgurls[-1]
       # re-store object
       streamInstance.put()
 
@@ -1336,10 +1351,11 @@ class CreateStreamService(webapp2.RequestHandler):
     if(streamid):
       stream.streamid = streamid
     coverurl = self.request.get('stream_cover_url')
-    if(not coverurl):
-      defaulturl = 'http://google.com/images'
-      coverurl = defaulturl
-    stream.coverurl = coverurl
+    if(0):
+      if(not coverurl):
+        defaulturl = 'http://google.com/images'
+        coverurl = defaulturl
+      stream.coverurl = coverurl
 
     # update repeated properties
     # TODO: move all of this into the stream model
