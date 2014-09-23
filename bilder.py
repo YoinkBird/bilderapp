@@ -742,10 +742,20 @@ class ViewAllStreamsService(webapp2.RequestHandler):
     if(1):
       streamDescList = json.loads(jsonData)
       streamCoverList = []
+      galleryConfList = []
       for streamDict in streamDescList:
         streamCoverList.append(streamDict['coverurl'])
+        tmpConf = {
+          'src'     : streamDict['coverurl'],
+          'caption' : streamDict['streamid'],
+        }
+        galleryConfList.append(tmpConf)
+#working till here
 
-      response += bilder_templates.gen_html_gallery(imgList = streamCoverList,)# imgrange = 5)
+      # legacy:
+      #response += bilder_templates.gen_html_gallery(imgList = streamCoverList,)# imgrange = 5)
+      # for upcoming better gallery:
+      response += bilder_templates.gen_html_gallery(imgConfJson = json.dumps(galleryConfList),) # imgrange = 5)
     # </covers>
 
     # < consolidate and write response>
@@ -1659,12 +1669,29 @@ class TrendingHandler(webapp2.RequestHandler):
 
     # get top3 trending streams
     jsonStr = sendJson(self, jsondata={}, service_name = 'trending')
+    # <covers>
+    # cover images
+    if(1):
+      streamDescList = json.loads(jsonStr)
+      streamCoverList = []
+      galleryConfList = []
+      for streamDict in streamDescList:
+        streamCoverList.append(streamDict['coverurl'])
+        tmpConf = {
+          'src'     : streamDict['coverurl'],
+          'caption' : streamDict['streamid'],
+        }
+        galleryConfList.append(tmpConf)
+    galleryHtml = bilder_templates.gen_html_gallery(imgConfJson = json.dumps(galleryConfList),) # imgrange = 5)
+#working till here
+
 
     # html content render
     contentList = []
     contentList.append(tile)
     contentList.append(TEMPLATE_NAVIGATION)
-    contentList.append(htmlPprintJson(jsonStr))
+    #contentList.append(htmlPprintJson(jsonStr))
+    contentList.append(galleryHtml)
     contentList.append(
       bilder_templates.gen_html_form_emailrate(action = '/managenotifications')
       )
