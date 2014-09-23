@@ -1663,6 +1663,7 @@ class TrendingHandler(webapp2.RequestHandler):
     # html content render
     contentList = []
     contentList.append(tile)
+    contentList.append(TEMPLATE_NAVIGATION)
     contentList.append(htmlPprintJson(jsonStr))
     contentList.append(
       bilder_templates.gen_html_form_emailrate(action = '/managenotifications')
@@ -1670,6 +1671,7 @@ class TrendingHandler(webapp2.RequestHandler):
 
     for content in contentList:
       response += content + '\n'
+    response = bilder_templates.generateContainerDiv(response,'#C0C0C0')
     self.response.write(response)
 
 #< class_TrendingHandler>
