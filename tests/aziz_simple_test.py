@@ -342,6 +342,16 @@ if __name__ == '__main__':
     del(testConfigDict['img_upload_json']['headers'])  #remove x-www-form override
     serviceList.append(testConfigDict['img_upload_json'])
 
+  ## searchterms test
+  if(1):
+    testConfigDict['getsearchterms'] = get_test_dict_pattern(
+      testname = 'getsearchterms',
+      service = 'getsearchterms',
+#      request = {'streamid':'grass','file_name':'http://www.clipartbest.com/cliparts/MTL/jg7/MTLjg7aTa.png'},
+    )
+    serviceList = []
+    serviceList.append(testConfigDict['getsearchterms'])
+
 
   # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
   if(globals['port'] == '9080'):

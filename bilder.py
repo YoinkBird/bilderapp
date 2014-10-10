@@ -247,6 +247,25 @@ class Greeting(ndb.Model):
       jsonRetDict = keyWordArr
       return jsonRetDict
 
+    def getKeyWordsDict(self):
+    # e.g.
+    # [{"id":"Dromas ardeola","label":"Crab-Plover","value":"Crab-Plover"},{"id":"Larus sabini","label":"Sabine`s Gull","value":"Sabine`s Gull"},{"id":"Vanellus gregarius","label":"Sociable Lapwing","value":"Sociable Lapwing"},{"id":"Oenanthe isabellina","label":"Isabelline Wheatear","value":"Isabelline Wheatear"}]
+      # < uniqify_list>
+      # remove duplicate keywords
+      if(1):
+        tmpSet   = set(self.tags)
+        tmpList  = list(tmpSet)
+        keyWordArr = list(tmpSet)
+      # </uniqify_list>
+
+      jsonRetDict = {}
+      jsonRetDict['id']    = self.streamid
+      jsonRetDict['label'] = self.streamid + ' ' + ' '.join(keyWordArr)
+      jsonRetDict['value'] = self.streamid + ' ' + ' '.join(keyWordArr)
+
+
+      return jsonRetDict
+
 
 
 #</class_Stream>
@@ -2000,14 +2019,16 @@ class genSearchTerms(webapp2.RequestHandler):
       if(0):
         keyWordArr.append(streamInst.streamid)
         keyWordArr.extend(streamInst.tags)
-      else:
+      elif(0):
         keyWordArr.extend( streamInst.getKeyWords() )
         #TODO: determine whether to associate a stream with the keywords
         #jsonRetDict[streamInst.streamid] = streamInst.getKeyWords()
+      else:
+        keyWordArr.append( streamInst.getKeyWordsDict() )
     # < uniqify_list>
     # remove duplicate keywords
     # Note: uniqify if not trying to associate keywords with a stream
-    if(1):
+    if(0):
       tmpSet   = set(keyWordArr)
       tmpList  = list(tmpSet)
       keyWordArr = list(tmpSet)
