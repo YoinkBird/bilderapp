@@ -231,6 +231,23 @@ class Greeting(ndb.Model):
     # Set property to current date/time when entity is created and whenever it is updated
     viewtimes  = ndb.DateTimeProperty(repeated = True)#, auto_now = True)
 
+    def getKeyWords(self):
+      jsonRetDict = {}
+      keyWordArr = [];
+      keyWordArr.append(self.streamid)
+      keyWordArr.extend(self.tags)
+      # < uniqify_list>
+      # remove duplicate keywords
+      if(1):
+        tmpSet   = set(keyWordArr)
+        tmpList  = list(tmpSet)
+        keyWordArr = list(tmpSet)
+      # </uniqify_list>
+      jsonRetDict['keywords'] = keyWordArr
+      jsonRetDict = keyWordArr
+      return jsonRetDict
+
+
 
 #</class_Stream>
 ###############################################################################
@@ -1980,16 +1997,21 @@ class genSearchTerms(webapp2.RequestHandler):
     keyWordArr = [];
     for streamInst in queriedStreams:
       jsonRetDict[streamInst.streamid] = {}
-#      jsonRetDict[streamInst.streamid] = streamInst.to_dict( exclude = ['author','date','viewtimes'] )
-      jsonRetDict[streamInst.streamid] = streamInst.to_dict( include = ['streamid','tags'] )
-      keyWordArr.append(streamInst.streamid)
-      keyWordArr.extend(streamInst.tags)
+      if(0):
+        keyWordArr.append(streamInst.streamid)
+        keyWordArr.extend(streamInst.tags)
+      else:
+        keyWordArr.extend( streamInst.getKeyWords() )
+        #TODO: determine whether to associate a stream with the keywords
+        #jsonRetDict[streamInst.streamid] = streamInst.getKeyWords()
     # < uniqify_list>
+    # remove duplicate keywords
+    # Note: uniqify if not trying to associate keywords with a stream
     if(1):
       tmpSet   = set(keyWordArr)
       tmpList  = list(tmpSet)
       keyWordArr = list(tmpSet)
-    # </uniqify_st>
+    # </uniqify_list>
     jsonRetDict['keywords'] = keyWordArr
     jsonRetDict = keyWordArr
 
