@@ -1958,6 +1958,47 @@ class CronHandler(webapp2.RequestHandler):
 ###############################################################################
 
 
+###############################################################################
+#< class_genSearchTerms>
+class genSearchTerms(webapp2.RequestHandler):
+  def get(self):
+    self.post()
+
+  def post(self):
+    # get streams, remove views older than one hour
+    jsonDictUnique = self.getStreams()
+    jsonStr = json.dumps(jsonDictUnique)
+    self.response.write(jsonStr)
+
+  def getStreams(self):
+    jsonRetDict = {}
+    # get all possible streams 
+    # TODO: get statistics object that 'viewsinglestream' is to maintain, e.g.: subscription
+    streams_query = Greeting.query()
+    queriedStreams = streams_query.fetch()
+
+    keyWordArr = [];
+    for streamInst in queriedStreams:
+      jsonRetDict[streamInst.streamid] = {}
+#      jsonRetDict[streamInst.streamid] = streamInst.to_dict( exclude = ['author','date','viewtimes'] )
+      jsonRetDict[streamInst.streamid] = streamInst.to_dict( include = ['streamid','tags'] )
+      keyWordArr.append(streamInst.streamid)
+      keyWordArr.extend(streamInst.tags)
+    # < uniqify_list>
+    if(1):
+      tmpSet   = set(keyWordArr)
+      tmpList  = list(tmpSet)
+      keyWordArr = list(tmpSet)
+    # </uniqify_st>
+    jsonRetDict['keywords'] = keyWordArr
+    jsonRetDict = keyWordArr
+
+
+    return jsonRetDict
+#< class_getStreams>
+###############################################################################
+
+
 #TODO: use 'genNav' to autogenerate links, redirection OR somehow retrieve this list of tuples 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -1979,6 +2020,7 @@ application = webapp2.WSGIApplication([
     ('/managenotifications',EmailDigestHandler),
     ('/upload', UploadHandler),
     ('/serve/([^/]+)?', ServeHandler),
+    ('/getsearchterms', genSearchTerms),
 ], debug=True)
 
 ###############################################
