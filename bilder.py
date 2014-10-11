@@ -181,8 +181,11 @@ def load_template(self, **kwargs):
       # load file as jinja template
       if(paramDict['type'] == 'jinja'):
         templateInst = jinja_loader_instance.get_template(paramDict['file'])
+        valuesDict = {}
         #TODO: add param for 'template_values'
-        templateStr = templateInst.render()
+        if('values' in paramDict):
+          valuesDict = paramDict['values']
+        templateStr = templateInst.render(valuesDict)
       # load file as plain-text, no parsing 
       elif(paramDict['type'] == 'html'):
         # normal open file
