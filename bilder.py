@@ -166,8 +166,8 @@ def genNav():
 def load_template(self, **kwargs):
   paramDict = kwargs
   templateStr = ''
+  # normal open file
   if('file' in paramDict):
-    #indexTemplateHandler = open("templates/autocomplete_template.html", 'r')
     indexTemplateHandler = open(paramDict['file'], 'r')
     templateStr = indexTemplateHandler.read()
     indexTemplateHandler.close()
@@ -1021,11 +1021,17 @@ class SearchAllStreamsService(webapp2.RequestHandler):
 
     #response = ''
     form = bilder_templates.get_html_template_search_form(action='/genericquery')
+    response += bilder_templates.generateContainerDivBlue("<p>Conventional Search</p>" + form)
+
+    # add html form 
+    response += bilder_templates.generateContainerDivBlue(
+                  "<p>Search with Autocompletion</p>" + 
+                  load_template(self, file = 'templates/autocomplete_template.html')
+                )
 
     # < consolidate and write response>
     ## make navigation sit on top
     response = TEMPLATE_NAVIGATION + response
-    response += bilder_templates.generateContainerDivBlue(form)
     ## make header sit on top
     response = bilder_templates.generateContainerDiv('<h1>Handler: SearchAllStreamsService</h1>' + response,'#C0C0C0')
     response = bilder_templates.get_html_body_template(response)
