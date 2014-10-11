@@ -5,9 +5,37 @@ api_version: 1
 threadsafe: true
 
 handlers:
+# workaround, see below for explanation
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+- url: /(css|img)/(.*)
+  static_files: \1/\2
+  upload: \1/(.*)
+
+- url: /static/(.*)
+  static_files: static/\1
+  upload: static/\1
+
 - url: /.*
   script: bilder.application
 
 libraries:
 - name: webapp2
   version: latest
+
+
+
+# NOTES
+#
+# the entry for "- url: /favicon\.ico" is only here to avoid error for the '-url: /.*' rule .
+# Something about the other 'static_files' rules doesn't work.
+# It makes little sense, but it's difficult to debut app.yaml so I'm leaving it as is
+# The error, in summery:
+# bad runtime process port ['']
+# ...
+#  File "C:\devtools\python\2_7_8\lib\re.py", line 244, in _compile
+#    raise error, v # invalid expression
+#sre_constants.error: cannot refer to open group
+# 
