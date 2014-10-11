@@ -159,6 +159,22 @@ def genNav():
   return navTable
 #</genNav>
 
+
+################################################################
+# < def_load_template>
+# returns valid html, sample usage: self.response.write(load_template(<filepath>))
+def load_template(self, **kwargs):
+  paramDict = kwargs
+  templateStr = ''
+  if('file' in paramDict):
+    #indexTemplateHandler = open("templates/autocomplete_template.html", 'r')
+    indexTemplateHandler = open(paramDict['file'], 'r')
+    templateStr = indexTemplateHandler.read()
+    indexTemplateHandler.close()
+  return templateStr
+# < def_load_template>
+################################################################
+
     
 TEMPLATE_NAVIGATION = genNav()
  
