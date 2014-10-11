@@ -843,6 +843,8 @@ class ViewAllStreamsService(webapp2.RequestHandler):
 #< class_GenericSearchQuery>
 # * search streams (which takes a query string and returns a list of streams (titles and cover image urls) that contain matching text
 class GenericQueryService(webapp2.RequestHandler):
+  def get(self):
+    self.post()
   def post(self):
     querydebug = 0 # 1: add bogus results 2: disable redirect, print some junk
     response = ''
@@ -851,6 +853,7 @@ class GenericQueryService(webapp2.RequestHandler):
     redirect = ''
     user_name = ''
     search_query = ''
+    jquery_keywords_bool = 0  # jquery autcomplete requires special format. set if 'term' passed in query_params
     # load in values
     #self.response.write(self.response.__dict__)
     #return
@@ -869,13 +872,21 @@ class GenericQueryService(webapp2.RequestHandler):
         redirect = 1
     except: # x-www-form
       redirect = self.request.get('redirect',1) # for now, simply check if true is defined
+      postVarDict = {}
+      for param in ['search_query','term']:
+        postVarDict[param] = self.request.get(param, 'unspecified')
+      # set defaults:
+      # if jqueryui-autocomplete is making the request it will use '?term=<query>'
+      if('term' in postVarDict and postVarDict['term'] != 'unspecified'):
+        postVarDict['search_query'] = postVarDict['term']
+        jquery_keywords_bool = 1
 
       # TODO: ?look up all users?
       user_name = self.request.get('user_name', DEFAULT_GUESTBOOK_NAME)
       #guestbook_name     = jsonDict['guestbook_name']
       #NOTE: default_value is only good if the form element was not submitted; even an empty box counts as data
       #queryExpression = self.request.get('search_query', default_value='*') # TODO: use the * for returning all results
-      search_query = self.request.get('search_query') # for now, simply check if search_query is defined
+      search_query = postVarDict['search_query']
     # done
     queryExpression = search_query
     # look up streams
@@ -941,6 +952,8 @@ class GenericQueryService(webapp2.RequestHandler):
       else:
         add = 1
       if(add == 1):
+        if( jquery_keywords_bool == 1):
+          streamDescDict = stream.getKeyWordsDict()
         streamsList.append(streamDescDict)
     # 3. do a regex
     # note: this is not a good idea; only supports full-word matches
