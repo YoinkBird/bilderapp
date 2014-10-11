@@ -1,5 +1,6 @@
 import json
 import cgi
+import os
 import urllib
 import urlparse
 
@@ -12,6 +13,7 @@ from google.appengine.ext import blobstore
 from google.appengine.ext.webapp import blobstore_handlers
 
 import webapp2
+import jinja2
 
 ########## 
 '''
@@ -166,11 +168,27 @@ def genNav():
 def load_template(self, **kwargs):
   paramDict = kwargs
   templateStr = ''
-  # normal open file
+  # jinja setup
+  jinja_loader_instance = jinja2.Environment(
+      loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
+      extensions=['jinja2.ext.autoescape'],
+      autoescape=True)
   if('file' in paramDict):
-    indexTemplateHandler = open(paramDict['file'], 'r')
-    templateStr = indexTemplateHandler.read()
-    indexTemplateHandler.close()
+    # default case if 'type' not specified
+    if(not 'type' in paramDict):
+      paramDict['type'] = 'html'
+    if('type' in paramDict):
+      # load file as jinja template
+      if(paramDict['type'] == 'jinja'):
+        templateInst = jinja_loader_instance.get_template(paramDict['file'])
+        #TODO: add param for 'template_values'
+        templateStr = templateInst.render()
+      # load file as plain-text, no parsing 
+      elif(paramDict['type'] == 'html'):
+        # normal open file
+        indexTemplateHandler = open(paramDict['file'], 'r')
+        templateStr = indexTemplateHandler.read()
+        indexTemplateHandler.close()
   return templateStr
 # < def_load_template>
 ################################################################
