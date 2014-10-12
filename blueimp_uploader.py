@@ -26,6 +26,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 
+import common_functions
 
 MIN_FILE_SIZE = 1  # bytes
 MAX_FILE_SIZE = 5000000  # bytes
@@ -142,6 +143,13 @@ class UploadHandler(webapp2.RequestHandler):
         if (self.request.get('_method') == 'DELETE'):
             return self.delete()
         result = {'files': self.handle_upload()}
+        # < add to stream>
+        for fileInst in result['files']:
+          blob_url = fileInst['url']
+          streamid = self.request.get('streamid')
+          if(streamid):
+            jsonStr = common_functions.sendJson(self, jsondata={"file_name": blob_url , "streamid": streamid}, service_name = 'img_upload')
+        # </add to stream>
         s = json.dumps(result, separators=(',', ':'))
         redirect = self.request.get('redirect')
         if redirect:

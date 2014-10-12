@@ -14,6 +14,7 @@
 $(function () {
     'use strict';
 
+    var upload_url =  window.location.origin + '/blueimp_upload' + window.location.search ;
     // Initialize the jQuery File Upload widget:
     $('#fileupload').fileupload({
         // Uncomment the following to send cross-domain cookies:
@@ -21,7 +22,7 @@ $(function () {
 
         // url: 'http://localhost:10080/upload'
         // https://developer.mozilla.org/en-US/docs/Web/API/Window.location
-        url: window.location.origin + '/blueimp_upload'
+        url: upload_url,
     });
 
     // Enable iframe cross-domain access via redirect option:
