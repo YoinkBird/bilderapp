@@ -27,9 +27,6 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True)
 
 
-WEBSITE = 'http://localhost:10080'
-WEBSITE = 'https://blueimp.github.io/jQuery-File-Upload/'
-WEBSITE = 'http://localhost:10080/blueimp_uploader'
 MIN_FILE_SIZE = 1  # bytes
 MAX_FILE_SIZE = 5000000  # bytes
 IMAGE_TYPES = re.compile('image/(gif|p?jpeg|(x-)?png)')
@@ -41,7 +38,6 @@ globalDict = {}
 globalDict['relUriUpload'] = 'blueimp_upload'
 globalDict['relUriDownload'] = 'blueimp_download'
 globalDict['upload_page'] = 'blueimp_uploader'
-WEBSITE = 'http://localhost:10080/' + globalDict['upload_page']
 
 def cleanup(blob_keys):
     blobstore.delete(blob_keys)
@@ -139,6 +135,7 @@ class UploadHandler(webapp2.RequestHandler):
         pass
 
     def get(self):
+        WEBSITE = self.request.host_url + '/' +  globalDict['upload_page']
         self.redirect(WEBSITE)
 
     def post(self):
