@@ -704,7 +704,7 @@ class ViewSingleStream(webapp2.RequestHandler):
     query_params = urllib.urlencode({'streamid': stream_name})
     actionFuture = '/img_upload?' + query_params 
     #blobstore
-    upload_url = blobstore.create_upload_url('/upload?' + query_params)
+    upload_url = blobstore.create_upload_url('/upload_fromform?' + query_params)
     action = upload_url
 
 
@@ -1163,7 +1163,7 @@ class ImgUpload(webapp2.RequestHandler):
 ###############################################################################
 
 
-class UploadHandler(blobstore_handlers.BlobstoreUploadHandler):
+class UploadHandlerFromForm(blobstore_handlers.BlobstoreUploadHandler):
   def post(self):
     #< read in options>
     #TODO: convert to - postVarDict = {}
@@ -2122,7 +2122,7 @@ application = webapp2.WSGIApplication([
     ('/cron_summarygen',CronHandler),
     ('/trending',TrendingHandler),
     ('/managenotifications',EmailDigestHandler),
-    ('/upload', UploadHandler),
+    ('/upload_fromform', UploadHandlerFromForm),
     ('/serve/([^/]+)?', ServeHandler),
     ('/getsearchterms', genSearchTerms),
 ], debug=True)
