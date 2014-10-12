@@ -24,6 +24,8 @@ $(function () {
         // https://developer.mozilla.org/en-US/docs/Web/API/Window.location
         url: upload_url,
     });
+    // reload when upload is complete in order to display uploaded images at beginning of gallery
+    $('#fileupload').bind('fileuploaddone', function (e, data) {location.reload()})
 
     // Enable iframe cross-domain access via redirect option:
     $('#fileupload').fileupload(
