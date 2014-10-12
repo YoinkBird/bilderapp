@@ -12,11 +12,13 @@ handlers:
 
 - url: /(css|img)/(.*)
   static_files: \1/\2
-  upload: \1/(.*)
+  #upload: \1/(.*)
+  upload: (css|img)/(.*)
 
 - url: /static/(.*)
   static_files: static/\1
-  upload: static/\1
+  #upload: static/\1
+  upload: static/(.*)
 
 - url: /.*
   script: bilder.application
