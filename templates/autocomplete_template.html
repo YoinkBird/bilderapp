@@ -19,7 +19,8 @@
     }
  
     var jsonSourceDefStr = 'http://localhost:8080/getsearchterms';
-    jsonSourceDefStr = 'http://localhost:8080/genericquery?redirect=0';
+    //jsonSourceDefStr = 'http://localhost:8080/genericquery?redirect=0';
+    jsonSourceDefStr = '{{host}}';
     $( "#search_query_autocomplete" ).autocomplete({
       // see following for formatting ideas: http://jqueryui.com/autocomplete/#categories
       //source: "http://jqueryui.com/resources/demos/autocomplete/search.php",

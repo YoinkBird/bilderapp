@@ -1060,7 +1060,12 @@ class SearchAllStreamsService(webapp2.RequestHandler):
     # add html form 
     response += bilder_templates.generateContainerDivBlue(
                   "<p>Search with Autocompletion</p>" + 
-                  load_template(self, file = 'templates/autocomplete_template.html')
+                  #load_template(self, file = 'templates/autocomplete_template.html')
+                  load_template(self, file = 'templates/autocomplete_template.html',
+                    type='jinja',
+                    values = {'host':self.request.host_url + '/genericquery?redirect=0'}
+
+                    )
                 )
 
     # < consolidate and write response>
