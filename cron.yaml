@@ -1,0 +1,33 @@
+cron:
+- description: trending_update
+  url: /cron_summarygen
+  schedule: every 5 minutes
+  #login: admin # not ready for this yet
+
+- description: send_mail_5min
+  url:      /managenotifications?mailtime=5
+  schedule: every 5 minutes
+- description: send_mail_1hour
+  url:      /managenotifications?mailtime=60
+  schedule: every 60 minutes
+- description: send_mail_1day
+  url:      /managenotifications?mailtime=2400
+  schedule: every 24 hours
+
+#################
+## notes
+# https://developers.google.com/appengine/docs/python/config/cron
+#
+# Uploading cron jobs
+# * updated with normal update procedure
+# * update only cron:
+#   appcfg.py update_cron
+#   windows: 
+#   appcfg.py update_cron %cd%
+# 
+# Testing cron Jobs
+# * To test a cron job, sign in as an administrator and visit the URL of the handler in your browser
+# * OR: http://localhost:8008/cron and 'run now'
+# * Caveat: The development server doesn't automatically run your cron jobs. You can use your local desktop's cron or scheduled tasks interface to trigger the URLs of your jobs with curl or a similar tool.
+# More notes
+# * Requests from the Cron Service will also contain a HTTP header: X-AppEngine-Cron: true
