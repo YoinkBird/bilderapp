@@ -25,7 +25,7 @@
       // see following for formatting ideas: http://jqueryui.com/autocomplete/#categories
       //source: "http://jqueryui.com/resources/demos/autocomplete/search.php",
       source: jsonSourceDefStr,
-      minLength: 2,
+      minLength: 1,
       select: function( event, ui ) {
         log( ui.item ?
           "Selected: " + ui.item.value + " aka " + ui.item.id :
