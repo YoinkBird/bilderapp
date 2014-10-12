@@ -13,23 +13,32 @@
     </style>
     <script>
       $(function() {
+        // appends search results to the box at the bottom
         function log( message ) {
           $( "<div>" ).text( message ).prependTo( "#log" );
           $( "#log" ).scrollTop( 0 );
         }
      
-        var jsonSourceDefStr = 'http://localhost:8080/getsearchterms';
-        //jsonSourceDefStr = 'http://localhost:8080/genericquery?redirect=0';
-        jsonSourceDefStr = '{{host}}';
+        var jsonSourceDefStr = '{{host}}';
+        var cache = {};
         $( "#search_query_autocomplete" ).autocomplete({
-          // see following for formatting ideas: http://jqueryui.com/autocomplete/#categories
-          //source: "http://jqueryui.com/resources/demos/autocomplete/search.php",
-          source: jsonSourceDefStr,
           minLength: 1,
           select: function( event, ui ) {
             log( ui.item ?
               "Selected: " + ui.item.value + " aka " + ui.item.id :
               "Nothing selected, input was " + this.value );
+          },
+          source: function( request, response ) {
+            var term = request.term;
+            if ( term in cache ) {
+              response( cache[ term ] );
+              return;
+            }
+            //$.getJSON( "search.php", request, function( data, status, xhr ) {
+            $.getJSON( jsonSourceDefStr, request, function( data, status, xhr ) {
+              cache[ term ] = data;
+              response( data );
+            });
           },
         });
       });
