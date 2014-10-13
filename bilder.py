@@ -717,15 +717,19 @@ class ViewSingleStream(webapp2.RequestHandler):
       dateTime += streamInst.date.day
 
     if (streamInst.imgurls):
-      gpsJsonDict = {}
       for imgUrl in streamInst.imgurls:
-        gpsJsonDict['latitude']  = 57.7973333 #TODO: determine from EXIF or randomise
-        gpsJsonDict['longitude'] = 12.0502107 #TODO: determine from EXIF or randomise
+        gpsJsonDict = {}
+        gpsJsonDict['latitude'], gpsJsonDict['longitude'] = self.genMockGpsCoord()
         gpsJsonDict['content']  = "<img width='100px' height='100px' src=\"%s\"/>" % (imgUrl)
         gpsJsonDict['timestamp'] = dateTime
         gpsJsonList.append(gpsJsonDict)
     #self.response.write(json.dumps(gpsJsonList))
     return {'markers':gpsJsonList}
+  def genMockGpsCoord(self):
+    import random
+    latitude  = random.randint(-900000000,900000000) / 10000000
+    longitude = random.randint(-900000000,900000000) / 10000000
+    return (latitude,longitude)
 
 
 
