@@ -713,13 +713,16 @@ class ViewSingleStream(webapp2.RequestHandler):
     imgJson = sendJson(self, jsondata={'stream_id':stream_name}, service_name = 'viewsinglestream')
     #imgJson = sendJson(self, jsondata=json.dumps({'stream_id':stream_name}), service_name = 'viewsinglestream')
 
+    html_imggallery = ''
     imgDict = json.loads(imgJson)
     if('imgurls' in imgDict):
       imgList = imgDict['imgurls']
       # TODO: range (default 3?), 'more pictures'
-      response += bilder_templates.gen_html_gallery(imgList = imgList, imgrange = 5)
+      html_imggallery = '<h2>Gallery of %s Images</h2>' % (stream_name.title())
+      html_imggallery += bilder_templates.gen_html_gallery(imgList = imgList, imgrange = 5)
     # </image gallery>
-    response += load_template(self, file = 'templates/blueimp_uploader.html',
+    html_uploader = '<h2>Add Images</h2>'
+    html_uploader += load_template(self, file = 'templates/blueimp_uploader.html',
       type='jinja',
       )
 
@@ -728,13 +731,16 @@ class ViewSingleStream(webapp2.RequestHandler):
     #    + 'Add an Image')
     subscriptionUrlJunk = '/%s?' % ('form2json')
     #response += bilder_templates.generateContainerDivBlue(bilder_templates.get_html_template_stream_subscribe(subscriptionUrlJunk))
-    response += bilder_templates.generateContainerDivBlue(
+    html_subscribe = bilder_templates.generateContainerDivBlue(
         bilder_templates.get_html_template_stream_subscribe(
           subscriptionUrlJunk,
           stream_name,
 
           )
         )
+    response += html_subscribe
+    response += html_imggallery
+    response += html_uploader
     # boilerplate
     response = bilder_templates.generateContainerDiv('<h1>Handler: ViewSingleStream</h1>' + response,'#000000')#'#C0C0C0')
     response = bilder_templates.get_html_body_template(response)
