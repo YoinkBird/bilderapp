@@ -719,10 +719,13 @@ class ViewSingleStream(webapp2.RequestHandler):
       # TODO: range (default 3?), 'more pictures'
       response += bilder_templates.gen_html_gallery(imgList = imgList, imgrange = 5)
     # </image gallery>
+    response += load_template(self, file = 'templates/blueimp_uploader.html',
+      type='jinja',
+      )
 
-    response += bilder_templates.generateContainerDivBlue(
-        bilder_templates.get_page_template_upload_file(action)
-        + 'Add an Image')
+    #response += bilder_templates.generateContainerDivBlue(
+    #    bilder_templates.get_page_template_upload_file(action)
+    #    + 'Add an Image')
     subscriptionUrlJunk = '/%s?' % ('form2json')
     #response += bilder_templates.generateContainerDivBlue(bilder_templates.get_html_template_stream_subscribe(subscriptionUrlJunk))
     response += bilder_templates.generateContainerDivBlue(
@@ -733,7 +736,7 @@ class ViewSingleStream(webapp2.RequestHandler):
           )
         )
     # boilerplate
-    response = bilder_templates.generateContainerDiv('<h1>Handler: ViewSingleStream</h1>' + response,'#C0C0C0')
+    response = bilder_templates.generateContainerDiv('<h1>Handler: ViewSingleStream</h1>' + response,'#000000')#'#C0C0C0')
     response = bilder_templates.get_html_body_template(response)
     self.response.write(response)
 #</class ViewSingleStream>
