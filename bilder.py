@@ -708,12 +708,20 @@ class ViewSingleStream(webapp2.RequestHandler):
   # { "latitude":57.9969944, "longitude":12.9865, "title":"thing",      "content":"<p>thing1</p><img width='100px' height='100px' src=\"<imgurl>\"/>"  , "timestamp":"20140530"},
   # ]}
     gpsJsonList = []
+    dateTime = 0
+    if (streamInst.date):
+      #dateTime = str(streamInst.date)
+      dateTime += streamInst.date.year  * 1000
+      dateTime += streamInst.date.month * 100
+      dateTime += streamInst.date.day
+
     if (streamInst.imgurls):
       gpsJsonDict = {}
       for imgUrl in streamInst.imgurls:
         gpsJsonDict['latitude']  = 57.7973333 #TODO: determine from EXIF or randomise
         gpsJsonDict['longitude'] = 12.0502107 #TODO: determine from EXIF or randomise
         gpsJsonDict['content']  = "<img width='100px' height='100px' src=\"%s\"/>" % (imgUrl)
+        gpsJsonDict['timestamp'] = dateTime
         gpsJsonList.append(gpsJsonDict)
     #self.response.write(json.dumps(gpsJsonList))
     return {'markers':gpsJsonList}
