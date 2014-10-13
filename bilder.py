@@ -2161,11 +2161,14 @@ class GenerateGeoView(webapp2.RequestHandler):
     html_geoview += load_template(self, file = 'templates/map_slider_img.html',
       type='jinja',
       )
+    html_geoview = bilder_templates.generateContainerDivBlue(html_geoview)
 
     # < consolidate and write response>
     ## make navigation sit on top
     response = TEMPLATE_NAVIGATION + response
     response += html_geoview
+    response = bilder_templates.generateContainerDiv('<h1>GeoView</h1>' + response,'#C0C0C0')
+    response = bilder_templates.get_html_body_template(response)
     self.response.write(response)
 
 
