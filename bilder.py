@@ -663,11 +663,12 @@ class ViewSingleStream(webapp2.RequestHandler):
         postVarDict['user_name'] = DEFAULT_GUESTBOOK_NAME
     except: # x-www-form
       #redirect = self.request.get('redirect',1) # for now, simply check if true is defined
-      for param in ['streamid', 'range',]:
+      for param in ['streamid', 'stream_id', 'geoview', 'range',]:
+      #for param in ['streamid', 'range',]:
         postVarDict[param] = self.request.get(param, 'unspecified')
     #</read in options>
     # set internal vars
-    user_name = postVarDict['user_name']
+#    user_name = postVarDict['user_name']
     stream_id = postVarDict['stream_id']
 
     # by key: uses 'parent' to help avoid incorrect results
