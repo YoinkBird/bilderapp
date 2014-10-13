@@ -328,7 +328,8 @@ def get_html_template_stream_subscribe(action, stream_name):
   </div> 
   """
   template2 = template % (stream_name)
-  template = gen_html_form(action , 'post', 'Subscribe', template2)
+  inputTag = gen_html_input_tag(value='Subscribe', css_class='btn btn-primary')
+  template = gen_html_form_best(action , 'post', template2, input_tag = inputTag)
   return template
 #</get_html_template_stream_subscribe>
 ################################################################
