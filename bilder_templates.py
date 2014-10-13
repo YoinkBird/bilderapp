@@ -54,6 +54,37 @@ def get_html_body_template(bodycontent):
   return '<html>\n  <body>\n' + bodycontent + '\n  </body>\n</html>'
 #</def get_html_body_template>
 
+#< def gen_html_input_tag>
+def gen_html_input_tag(**kwargs):
+  html_attrib_list = []
+  submit_type = 'submit'
+  if(kwargs):
+    if('css_class' in kwargs):
+      html_attrib_list.append('class="%s"' % kwargs['css_class'])
+    if('value' in kwargs):
+      html_attrib_list.append('value="%s"' % kwargs['value'])
+  miscAttrib = ' '.join(html_attrib_list)
+  html_input = '<input type="%s" %s>' % (submit_type, miscAttrib)
+  return html_input
+#</def gen_html_input_tag>
+
+#< def gen_html_form_best>
+def gen_html_form_best(action,method,form_content,**kwargs):
+  html_attrib_list = []
+  input_tag = ''
+  if(kwargs):
+    if('css_class' in kwargs):
+      html_attrib_list.append('class="%s"' % kwargs['css_class'])
+    if('action' in kwargs):
+      html_attrib_list.append('action="%s"' % kwargs['action'])
+    if('input_tag' in kwargs):
+      input_tag = kwargs['input_tag']
+  miscAttrib = ' '.join(html_attrib_list)
+ 
+  html_form = '<form action="%s" method="%s">\n  %s\n  %s\n</form>\n' % (action, method, form_content,input_tag)
+  return html_form
+#</def gen_html_form_best>
+
 #< def gen_html_form>
 #TODO: replace the lambda in 'class Manage' with this function
 def gen_html_form(action,method,submit_value,contents):
