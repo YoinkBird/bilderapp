@@ -682,6 +682,12 @@ class ViewSingleStream(webapp2.RequestHandler):
       jsonDataDict['range'] = len(streamInst.imgurls)
     if streamInst.coverurl:
       jsonDataDict['coverurl'] = streamInst.coverurl
+
+    # GPS data - add mock gps coordinates for now
+    # TODO: if stream has gps data don't add it, blah blah
+    if('geoview' in postVarDict):
+      jsonDataDict = self.genGeoViewJson(streamInst)
+
     
     #TODO: range - "pagination" through DB of images, i.e return <range_lower>:<range_upper> images at a time
     range = len(imgList)
@@ -695,6 +701,26 @@ class ViewSingleStream(webapp2.RequestHandler):
     streamInst.put()
 
     self.response.write(jsonStr)
+  # accept streamInst and extract information
+  def genGeoViewJson(self, streamInst):
+  # json format:
+  # {"markers":[
+  # { "latitude":57.9969944, "longitude":12.9865, "title":"thing",      "content":"<p>thing1</p><img width='100px' height='100px' src=\"<imgurl>\"/>"  , "timestamp":"20140530"},
+  # ]}
+    gpsJsonList = []
+    if (streamInst.imgurls):
+      gpsJsonDict = {}
+      for imgUrl in streamInst.imgurls:
+        gpsJsonDict['latitude']  = 57.7973333 #TODO: determine from EXIF or randomise
+        gpsJsonDict['longitude'] = 12.0502107 #TODO: determine from EXIF or randomise
+        gpsJsonDict['content']  = "<img width='100px' height='100px' src=\"%s\"/>" % (imgUrl)
+        gpsJsonList.append(gpsJsonDict)
+    #self.response.write(json.dumps(gpsJsonList))
+    return {'markers':gpsJsonList}
+
+
+
+
 
   def get(self):
     response = '' # store request response

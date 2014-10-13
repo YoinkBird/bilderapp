@@ -352,6 +352,10 @@ if __name__ == '__main__':
     serviceList = []
     serviceList.append(testConfigDict['getsearchterms'])
 
+  ## test geoview - quick and dirty test config
+  if(1):
+    testConfigDict['viewsinglestream']['request']['geoview'] = 1
+    serviceList = [testConfigDict['viewsinglestream']]
 
   # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
   if(globals['port'] == '9080'):
