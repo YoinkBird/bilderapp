@@ -178,7 +178,7 @@
           " - $" + $( "#slider-range" ).slider( "values", 1 ) );
       }
 /*************************************************************************************************/
-      $(sliderInitalise);
+     // $(sliderInitalise);
 /*************************************************************************************************/
 /*************************************************************************************************/
       //reference: http://www.w3schools.com/jsref/jsref_obj_date.asp
@@ -195,9 +195,6 @@
         var values = [];
         values.min = dateToInt_yyyymmdd(ui.values.min);
         values.max = dateToInt_yyyymmdd(ui.values.max);
-        //$( "#amount_date" ).val( ui.values.min.getFullYear() + " A.D to " + ui.values.max.getFullYear() + " A.D");
-        //$( "#amount_date" ).val( dateToInt_yyyymmdd(ui.values.min) + " A.D to " + ui.values.max.getFullYear() + " A.D");
-        $( "#amount_date" ).html( values.min + " A.D to " + values.max + " A.D");
         //$('#map_canvas').gmap('closeInfoWindow'); // proof-of-concept
         $.post( jsonMapDataUrl, jsonGeoViewParams, function(data){
           //TODO: only clear relevant markers: clearMarkersByDateRange(min, max, jsondata)
@@ -241,39 +238,16 @@
       $(sliderDateInitalise);
 /*************************************************************************************************/
 /*************************************************************************************************/
-
-      /* DEBUG: display value of slider in a div. useful for debug*/
-       function showSliderValue(){
-          var sliderValArr = $('#slider-range').slider("values");
-          var htmlStr = 'min:' + sliderValArr[0];
-          htmlStr += ' | max:' + sliderValArr[1];
-          $('#slider-valueprint>p:nth-child(2)').html(htmlStr);
-       }
-/*************************************************************************************************/
-      $(
-        function(){
-          $('#slider-range').bind('slide',showSliderValue);
-        }
-      );
-      //$('#map_canvas').gmap('clearMarkers');
-/*************************************************************************************************/
-/*************************************************************************************************/
     </script>
   </head>
 
   <body>
-    <div id="map_canvas" style="width:650;height:400px"></div>
-    <p>
-    <label for="amount">"Number-Date" range YYYYMMDD:</label><br/>
-    <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;"><br/>
-    <div id="slider-range" style="border:1px solid; background-color:red;"></div>
-    <label for="amount_date">Date range YYYYMMDD:</label><br/>
-    <div id="amount_date"><br/></div>
-    </p>
-    <div style="padding:50px">
-      <div id="slider_date" style="border:1px solid; "></div>
+    <div>
+      <div id="map_canvas" style="width:650;height:400px"></div>
+      <div style="padding:50px">
+        <div id="slider_date" style="border:1px solid; "></div>
+      </div>
     </div>
-    <div id="slider-valueprint" style="border:1px solid; background-color:red;"><p>values are</p><p></p></div> <!-- second 'p' is for the value and is selected with nth-child(2) -->
    </body>
 </html>
 
