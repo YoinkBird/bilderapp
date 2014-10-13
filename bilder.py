@@ -134,12 +134,13 @@ def genNav():
       'Manage'   : 'manage',
       'Create'   : 'create',
       'View'     : 'viewallstreams',
+      'GeoView'  : 'geoview',
       'Search'   : 'searchallstreams',
       'Trending'   : 'trending',
       'Social'   : 'social',
       }
   #TODO: convert to 2d list or object or whatever, try to autogenerate initial link->target
-  navList = [ "Home", "Manage", "Create", "View", "Search", "Trending", "Social", ]
+  navList = [ "Home", "Manage", "Create", "View", "GeoView", "Search", "Trending", "Social", ]
   navTr = ''
   for param in navList:
     tmplink = '<a href=%s>%s</a>' % (navDict[param], param)
@@ -151,7 +152,7 @@ def genNav():
     TEMPLATE_NAVIGATION = """\
     <table border=1 cellpadding=5>
       <tr>
-        <td colspan=%s>TODO: assign correct link targets</td>
+        <td colspan=%s>
       <tr>
         %s
       </tr>
@@ -2112,6 +2113,27 @@ class genSearchTerms(webapp2.RequestHandler):
 ###############################################################################
 
 
+###############################################################################
+#< class_GenerateGeoView>
+class GenerateGeoView(webapp2.RequestHandler):
+  def get(self):
+    response = ''
+    html_geoview = '<h2>GeoView</h2>'
+    html_geoview += load_template(self, file = 'templates/map_slider_img.html',
+      type='jinja',
+      )
+
+    # < consolidate and write response>
+    ## make navigation sit on top
+    response = TEMPLATE_NAVIGATION + response
+    response += html_geoview
+    self.response.write(response)
+
+
+#</class_GenerateGeoView>
+###############################################################################
+
+
 #TODO: use 'genNav' to autogenerate links, redirection OR somehow retrieve this list of tuples 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -2134,6 +2156,7 @@ application = webapp2.WSGIApplication([
     ('/upload_fromform', UploadHandlerFromForm),
     ('/serve/([^/]+)?', ServeHandler),
     ('/getsearchterms', genSearchTerms),
+    ('/geoview', GenerateGeoView),
 ], debug=True)
 
 ###############################################
