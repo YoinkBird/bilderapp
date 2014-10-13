@@ -151,7 +151,7 @@
         //convert number to date
         $( "#amount" ).val( ui.values[ 0 ] + " A.D to " + ui.values[ 1 ] + " A.D");
         //$('#map_canvas').gmap('closeInfoWindow'); // proof-of-concept
-        $.getJSON( jsonMapDataUrl, function(data){
+        $.post( jsonMapDataUrl, jsonGeoViewParams, function(data){
             //TODO: only clear relevant markers: clearMarkersByDateRange(min, max, jsondata)
             clearMarkers(); // clear before setting; TODO: only clear ones that are out of range
             if(1){
@@ -159,7 +159,7 @@
             }else{ // test values to exclude one value from json
             setMarkersByDateRange(20140220, 20170000, data);
             }
-            }); // end .getJson
+        },'json'); // end .post
 
       } // end slide:function(even, ui)
 
@@ -199,7 +199,7 @@
         //$( "#amount_date" ).val( dateToInt_yyyymmdd(ui.values.min) + " A.D to " + ui.values.max.getFullYear() + " A.D");
         $( "#amount_date" ).html( values.min + " A.D to " + values.max + " A.D");
         //$('#map_canvas').gmap('closeInfoWindow'); // proof-of-concept
-        $.getJson( jsonMapDataUrl, function(data){
+        $.post( jsonMapDataUrl, jsonGeoViewParams, function(data){
           //TODO: only clear relevant markers: clearMarkersByDateRange(min, max, jsondata)
           clearMarkers(); // clear before setting; TODO: only clear ones that are out of range
           if(1){
@@ -208,7 +208,7 @@
           }else{ // test values to exclude one value from json
             setMarkersByDateRange(20140220, 20170000, data);
           }
-        }); // end .getJson
+        },'json'); // end .post
 
       } // end slide:function(even, ui)
 
