@@ -720,7 +720,7 @@ class ViewSingleStream(webapp2.RequestHandler):
       for imgUrl in streamInst.imgurls:
         gpsJsonDict = {}
         gpsJsonDict['latitude'], gpsJsonDict['longitude'] = self.genMockGpsCoord()
-        gpsJsonDict['content']  = "<img width='100px' height='100px' src=\"%s\"/>" % (imgUrl)
+        gpsJsonDict['content']  = imgUrl
         gpsJsonDict['timestamp'] = dateTime
         gpsJsonList.append(gpsJsonDict)
     #self.response.write(json.dumps(gpsJsonList))

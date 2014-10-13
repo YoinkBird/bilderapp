@@ -61,7 +61,8 @@
               $.each( jsonData.markers, function(i, marker) {
                 var $marker = self.addMarker( { 'position': new google.maps.LatLng(marker.latitude, marker.longitude), 'bounds':true } )
                 $marker.mouseover(function(){
-                    self.openInfoWindow({ 'content': '<p>Timestamp2:' + marker.timestamp + '</p>' + marker.content}, this);
+                    var imgTag = "<img width='100px' height='100px' src=\"" + marker.content + "\"/>";
+                    self.openInfoWindow({ 'content': '<p>Timestamp2:' + marker.timestamp + '</p>' + imgTag}, this);
 //                      self.openInfoWindow({ 'content': '<p>' + $('#slider-range').slider("values") + '</p>}, this);
                   }); // mouseover
               }); // .each loop
