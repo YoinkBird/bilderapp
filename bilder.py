@@ -753,13 +753,17 @@ class ViewSingleStream(webapp2.RequestHandler):
     if('imgurls' in imgDict):
       imgList = imgDict['imgurls']
       # TODO: range (default 3?), 'more pictures'
-      html_imggallery = '<h2>Gallery of %s Images</h2>' % (stream_name.title())
+      html_imggallery = '<h2>%s Gallery</h2>' % (stream_name.title())
       html_imggallery += bilder_templates.gen_html_gallery(imgList = imgList, imgrange = 5)
     # </image gallery>
     html_uploader = '<h2>Add Images</h2>'
     html_uploader += load_template(self, file = 'templates/blueimp_uploader.html',
       type='jinja',
       )
+
+    # GeoView link generation:
+    geoview_href = '<a class="btn btn-primary" href=%s/geoview?streamid=%s>Geo View</a>' % (self.request.host_url, stream_name)
+    html_geoview = bilder_templates.generateContainerDivBlue(geoview_href)
 
     #response += bilder_templates.generateContainerDivBlue(
     #    bilder_templates.get_page_template_upload_file(action)
@@ -775,6 +779,7 @@ class ViewSingleStream(webapp2.RequestHandler):
         )
     response += html_subscribe
     response += html_imggallery
+    response += html_geoview
     response += html_uploader
     # boilerplate
     response = bilder_templates.generateContainerDiv('<h1>Handler: ViewSingleStream</h1>' + response,'#000000')#'#C0C0C0')
