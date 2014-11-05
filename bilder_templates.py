@@ -263,6 +263,9 @@ def gen_html_gallery(**kwargs):
     if('caption' in imgConfDict):
       htmlPTag = '<p>%s</p>' % (imgConfDict['caption'])
       htmlImgTag += htmlPTag
+    if('href' in imgConfDict):
+      tagStyle = "text-decoration:none;color:inherit;"
+      htmlImgTag = '<a href=%s style="%s">%s</a>' % ( imgConfDict['href'], tagStyle, htmlImgTag)
     imgDiv     = '<div style="%s">%s</div>' % (divStyle, htmlImgTag )
     #imgDiv += '<p>%s</p>' % (imgConfDict) # make sure this doesn't break 'viewsinglestream'
     galleryList.append(imgDiv)

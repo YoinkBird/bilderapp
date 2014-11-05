@@ -875,6 +875,7 @@ class ViewAllStreamsService(webapp2.RequestHandler):
         tmpConf = {
           'src'     : streamDict['coverurl'],
           'caption' : streamDict['streamid'],
+          'href'    : self.request.host_url + '/viewsinglestream?streamid=' + streamDict['streamid'],
         }
         galleryConfList.append(tmpConf)
 #working till here
@@ -1831,6 +1832,7 @@ class TrendingHandler(webapp2.RequestHandler):
         tmpConf = {
           'src'     : streamDict['coverurl'],
           'caption' : streamDict['streamid'],
+          'href'    : self.request.host_url + '/viewsinglestream?streamid=' + streamDict['streamid'],
         }
         galleryConfList.append(tmpConf)
     galleryHtml = bilder_templates.gen_html_gallery(imgConfJson = json.dumps(galleryConfList),) # imgrange = 5)
