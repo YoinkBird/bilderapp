@@ -1109,7 +1109,7 @@ class SearchAllStreamsService(webapp2.RequestHandler):
 
     #response = ''
     form = bilder_templates.get_html_template_search_form(action='/genericquery')
-    response += bilder_templates.generateContainerDivBlue("<p>Conventional Search</p>" + form)
+    #response += bilder_templates.generateContainerDivBlue("<p>Conventional Search</p>" + form)
 
     # add html form 
     response += bilder_templates.generateContainerDivBlue(
