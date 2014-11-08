@@ -693,6 +693,7 @@ class ViewSingleStream(webapp2.RequestHandler):
     #TODO: range - "pagination" through DB of images, i.e return <range_lower>:<range_upper> images at a time
     range = len(imgList)
     jsonStr = json.dumps({'imgurls':imgList,'range':range})
+    jsonDataDict['vars'] = postVarDict
     jsonStr = json.dumps(jsonDataDict)
     # update view-count
     streamInst.views += 1
