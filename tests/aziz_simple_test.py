@@ -358,7 +358,7 @@ if __name__ == '__main__':
     serviceList = [testConfigDict['viewsinglestream']]
 
   # test the other appengine project 'jsondemotest TODO: put the url here or change this based on cli 
-  if(globals['port'] == '9080'):
+  if('port' in globals and globals['port'] == '9080'):
     del serviceList
     serviceList = []
     ## TODO: add this as well to be complete: # jsonreturntest - the demo appspot project
