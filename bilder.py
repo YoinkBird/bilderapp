@@ -2182,7 +2182,34 @@ class GenerateGeoView(webapp2.RequestHandler):
 #</class_GenerateGeoView>
 ###############################################################################
 
+###############################################################################
+#<class_RestAPIHandler>
+# https://webapp-improved.appspot.com/guide/handlers.html#view-functions
+# example:
+# http://localhost:8080/rest/viewstream?geoview=1
+#   REST API Interface
+#   args: viewstream
+#   querystring: geoview=1
+# http://localhost:8080/rest/viewstream/single?geoview=1
+#   REST API Interface
+#   args: viewstream single
+#   querystring: geoview=1
+# http://localhost:8080/rest/viewstream?geoprox=59.2,60.3
+#   REST API Interface
+#   args: viewstream
+#   querystring: geoprox=59.2,60.3
+class RestAPIHandler(webapp2.RequestHandler):
+  def get(self, *args):
+    self.response.write("REST API Interface<br/>\n")
+    if(args):
+      self.response.write("args: " + ' '.join(args) + "<br/>")
+    self.response.write("querystring: " + self.request.query_string + "<br/>")
+#</class_RestAPIHandler>
+###############################################################################
 
+
+
+# https://webapp-improved.appspot.com/guide/routing.html#the-url-template
 #TODO: use 'genNav' to autogenerate links, redirection OR somehow retrieve this list of tuples 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -2206,6 +2233,9 @@ application = webapp2.WSGIApplication([
     ('/serve/([^/]+)?', ServeHandler),
     ('/getsearchterms', genSearchTerms),
     ('/geoview', GenerateGeoView),
+    (r'/rest', RestAPIHandler),
+    (r'/rest/([^/]+)', RestAPIHandler),
+    (r'/rest/([^/]+)/([^/]+)', RestAPIHandler),
 ], debug=True)
 
 ###############################################
@@ -2242,3 +2272,5 @@ https://apt.mybalsamiq.com/mockups/1083503.png?key=c6286db5bf27f95012252833d5214
 # request class, forms: https://developers.google.com/appengine/docs/python/tools/webapp/requestclass
 
 
+# https://cloud.google.com/appengine/docs/python/tools/webapp/requestclass#Request_arguments
+# self.response.write(self.request.arguments())
