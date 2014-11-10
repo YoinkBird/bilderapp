@@ -775,9 +775,9 @@ class ViewSingleStream(webapp2.RequestHandler):
     geoview_href = '<a class="btn btn-primary" href=%s/geoview?streamid=%s>Geo View</a>' % (self.request.host_url, stream_name)
     html_geoview = bilder_templates.generateContainerDivBlue(geoview_href)
 
-    #response += bilder_templates.generateContainerDivBlue(
-    #    bilder_templates.get_page_template_upload_file(action)
-    #    + 'Add an Image')
+    response += bilder_templates.generateContainerDivBlue(
+        bilder_templates.get_page_template_upload_file(action)
+        + 'Add an Image')
     subscriptionUrlJunk = '/%s?' % ('form2json')
     #response += bilder_templates.generateContainerDivBlue(bilder_templates.get_html_template_stream_subscribe(subscriptionUrlJunk))
     html_subscribe = bilder_templates.generateContainerDivBlue(
