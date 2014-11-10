@@ -138,7 +138,7 @@ if __name__ == '__main__':
   # </define server>
 
   # define connection
-  conn = httplib.HTTPConnection(globals["server"],globals["port"])
+  #conn = httplib.HTTPConnection(globals["server"],globals["port"])
   # TODO: define dict of services and tests in order to specify test-specific defaults
   # TODO: make that a list of dicts
   testConfigDict =  {
