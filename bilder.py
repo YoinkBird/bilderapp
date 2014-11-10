@@ -1278,10 +1278,11 @@ class UploadHandlerFromForm(blobstore_handlers.BlobstoreUploadHandler):
         blob_url = images.get_serving_url(blob_key = blob_info.key())
       jsonStr = sendJson(self, jsondata={"file_name": blob_url , "streamid": paramDict['streamid']}, service_name = 'img_upload')
       #self.redirect('/serve/%s' % blob_info.key())
+      self.response.write(jsonStr)
     query_params = urllib.urlencode({'streamid': paramDict['streamid']})
     action = '/viewsinglestream?' + query_params 
     #DEBUG: 
-    if(1):
+    if(0):
       self.redirect(action)
   def printinfo(self):
     paramDict = {}
