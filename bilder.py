@@ -297,9 +297,10 @@ class Greeting(ndb.Model):
       # </uniqify_list>
 
       jsonRetDict = {}
-      jsonRetDict['id']    = self.streamid
-      jsonRetDict['label'] = self.streamid + ' ' + ' '.join(keyWordArr)
-      jsonRetDict['value'] = self.streamid + ' ' + ' '.join(keyWordArr)
+      jsonRetDict['id']       = self.streamid
+      jsonRetDict['streamid'] = self.streamid
+      jsonRetDict['label']    = self.streamid + ' ' + ' '.join(keyWordArr)
+      jsonRetDict['value']    = self.streamid + ' ' + ' '.join(keyWordArr)
 
 
       return jsonRetDict
