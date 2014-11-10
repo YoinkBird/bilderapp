@@ -298,9 +298,12 @@ class Greeting(ndb.Model):
 
       jsonRetDict = {}
       jsonRetDict['id']       = self.streamid
-      jsonRetDict['streamid'] = self.streamid
       jsonRetDict['label']    = self.streamid + ' ' + ' '.join(keyWordArr)
       jsonRetDict['value']    = self.streamid + ' ' + ' '.join(keyWordArr)
+      # Note: adding extra keywords should not interfere with  the jQuery search
+      #   it is hard-coded to read 'id','label','value'
+      jsonRetDict['streamid'] = self.streamid
+      jsonRetDict['coverurl'] = self.coverurl
 
 
       return jsonRetDict
