@@ -1263,7 +1263,8 @@ class UploadHandlerFromForm(blobstore_handlers.BlobstoreUploadHandler):
 
 
     upload_files = self.get_uploads('img')  # 'file' is file upload field in the form
-    self.printinfo() # dump environment info; i ain't got no clue..
+    if(0):
+      self.printinfo() # dump environment info; i ain't got no clue..
     #TODO: check if no file uploaded
     if(upload_files):
       blob_info = upload_files[0]
@@ -1278,6 +1279,8 @@ class UploadHandlerFromForm(blobstore_handlers.BlobstoreUploadHandler):
         blob_url = images.get_serving_url(blob_key = blob_info.key())
       jsonStr = sendJson(self, jsondata={"file_name": blob_url , "streamid": paramDict['streamid']}, service_name = 'img_upload')
       #self.redirect('/serve/%s' % blob_info.key())
+      jsonRequest = {"file_name": blob_url , "streamid": paramDict['streamid']}
+      self.response.write(json.dumps(jsonRequest))
       self.response.write(jsonStr)
     query_params = urllib.urlencode({'streamid': paramDict['streamid']})
     action = '/viewsinglestream?' + query_params 
