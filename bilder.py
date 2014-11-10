@@ -798,6 +798,29 @@ class ViewSingleStream(webapp2.RequestHandler):
 #</class ViewSingleStream>
 ###############################################################################
 
+
+###############################################################################
+#<class GetBlobStoreUrl>
+# generate blobstore URL for uplaoding
+class GetBlobStoreUrl(webapp2.RequestHandler):
+  def get(self):
+    self.post()
+  def post(self):
+    response = '' # store request response
+    # get stream name
+    stream_name = self.request.get('streamid')#,'stream_unspecified')
+    # http://localhost:8080/viewsinglestream?streamid=kjljljkl
+    query_params = urllib.urlencode({'streamid': stream_name})
+    #blobstore
+    upload_url = blobstore.create_upload_url('/upload_fromform?' + query_params)
+    action = upload_url
+
+    # prepare response
+    response = action
+    self.response.write(response)
+#</class GetBlobStoreUrl>
+###############################################################################
+
 ###############################################################################
 # print json strings in html-friendly format
 def htmlPprintJson(jsonParam):
@@ -2236,6 +2259,7 @@ application = webapp2.WSGIApplication([
     ('/managenotifications',EmailDigestHandler),
     ('/upload_fromform', UploadHandlerFromForm),
     ('/serve/([^/]+)?', ServeHandler),
+    ('/getblobstoreurl', GetBlobStoreUrl),
     ('/getsearchterms', genSearchTerms),
     ('/geoview', GenerateGeoView),
     (r'/rest', RestAPIHandler),
